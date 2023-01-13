@@ -5,22 +5,34 @@ const settings = {
   animate: true,
 };
 
-function drawSkewedRect(context, w = 600, h = 200, angle = Math.PI * 0.25) {
-  const rx = Math.cos(angle) * w;
-  const ry = Math.sin(angle) * w;
+class Parallelogram {
+  constructor ({ x, y, width, height, angle }) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.angle = angle;
+    this.rx = Math.cos(angle) * width;
+    this.ry = Math.sin(angle) * width;
+  }
 
-  context.save();
-  context.translate( rx * -0.5, (ry + h) * -0.5);
+  draw(context) {
 
-  context.beginPath();
-  context.moveTo(0, 0);
-  context.lineTo(rx, ry);
-  context.lineTo(rx, ry + h);
-  context.lineTo(0, h);
-  context.closePath();
-  context.stroke();
+    context.save();
+    context.translate(this.x - this.rx * 0.5, this.y - ( this.ry + this.height ) * 0.5);
 
-  context.restore();
+    const color = Math.floor(Math.abs(Math.cos(this.angle)) * 255);
+
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(this.rx, this.ry);
+    context.lineTo(this.rx, this.ry + this.height);
+    context.lineTo(0, this.height);
+    context.closePath();
+    context.stroke();
+
+    context.restore();
+  }
 }
 
 let angle = 0;
@@ -31,12 +43,16 @@ const sketch = () => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
 
+    const r = new Parallelogram({ 
+      x: width * 0.5,
+      y: height * 0.5,
+      width: width * 0.4,
+      height: height * 0.1,
+      angle
+    });
+    r.draw(context);
+
     angle += angleStep;
-
-    context.translate(width * 0.5, height * 0.5);
-
-    context.strokeStyle = 'blue';
-    drawSkewedRect(context, 600, 100, angle);
 
   };
 };
