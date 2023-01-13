@@ -1,0 +1,30 @@
+{
+  "name": "boom-sketch",
+  "version": "1.0.0",
+  "description": "Boom Sketch Collection",
+  "main": "index.js",
+  "scripts": {
+    "triangle": "canvas-sketch triangle.js --open",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rgmiranda/boom-sketch.git"
+  },
+  "keywords": [
+    "sketch",
+    "canvas",
+    "code-art"
+  ],
+  "author": "Ricardo Miranda <rgmiranda@live.com.ar>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rgmiranda/boom-sketch/issues"
+  },
+  "homepage": "https://github.com/rgmiranda/boom-sketch#readme",
+  "dependencies": {
+    "canvas-sketch": "^0.7.6",
+    "canvas-sketch-cli": "^1.11.20",
+    "canvas-sketch-util": "^1.10.0"
+  }
+}
