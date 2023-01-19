@@ -12,6 +12,7 @@ const cvWidth = 1080,
 const settings = {
   dimensions: [cvWidth, cvHeight],
   name: seed,
+  animate: true,
 };
 
 const figureColors = [
@@ -24,6 +25,7 @@ const figures = [];
 const figCount = 40;
 const angle = 5 * Math.PI / 6;
 const bgColor = random.pick(risoColors).hex;
+const polygonColor = random.pick(figureColors).hex;
 
 class Parallelogram {
 
@@ -41,6 +43,9 @@ class Parallelogram {
     shadow.rgba[3] = 0.5;
     this.shadowColor = color.style(shadow.rgba);
     this.blend = (random.boolean()) ? 'source-over' : 'overlay';
+    const vmag = random.range(-5, 5);
+    this.vx = Math.cos(angle) * vmag;
+    this.vy = Math.sin(angle) * vmag;
   }
 
   /**
@@ -81,6 +86,23 @@ class Parallelogram {
     context.stroke();
 
     context.restore();
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (this.x - (this.width * 0.5) > cvWidth) {
+      this.x = -this.width * 0.5;
+    } else if (this.x < -this.width * 0.5) {
+      this.x = cvWidth + (this.width * 0.5);
+    }
+
+    if (this.y - ((this.ry + this.height) * 0.5) > cvHeight) {
+      this.y = (this.ry + this.height) * -0.5;
+    } else if (this.y < - (this.ry + this.height) * 0.5) {
+      this.y = cvHeight + (this.ry + this.height) * 0.5;
+    }
   }
 }
 
@@ -124,6 +146,7 @@ const sketch = () => {
     context.clip();
     
     for (const f of figures) {
+      f.update();
       f.draw(context);
     }
 
@@ -131,7 +154,7 @@ const sketch = () => {
 
     context.save();
     context.lineWidth = 20;
-    context.strokeStyle = random.pick(figureColors).hex;
+    context.strokeStyle = polygonColor;
     context.globalCompositeOperation = 'color-burn'
     drawPolygon({
       context,
