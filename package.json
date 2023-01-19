@@ -25,6 +25,7 @@
   "dependencies": {
     "canvas-sketch": "^0.7.6",
     "canvas-sketch-cli": "^1.11.20",
-    "canvas-sketch-util": "^1.10.0"
+    "canvas-sketch-util": "^1.10.0",
+    "riso-colors": "^1.0.1"
   }
 }
