@@ -4,7 +4,7 @@
   "description": "Boom Sketch Collection",
   "main": "index.js",
   "scripts": {
-    "triangle": "canvas-sketch triangle.js --open",
+    "triangle": "canvas-sketch triangle.js --open --output build/triangle",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

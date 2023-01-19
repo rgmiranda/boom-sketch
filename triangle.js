@@ -11,7 +11,6 @@ const cvWidth = 1080,
 
 const settings = {
   dimensions: [cvWidth, cvHeight],
-  output: './build/triangle',
   name: seed,
 };
 
