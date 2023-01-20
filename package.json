@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "triangle": "canvas-sketch triangle.js --open --output build/triangle",
+    "curves": "canvas-sketch curves.js --open --output build/curves",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
