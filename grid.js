@@ -1,18 +1,21 @@
 const canvasSketch = require('canvas-sketch');
-const cvWidth = 1080,
-  cvHeight = 1080;
+const { noise2D } = require('canvas-sketch-util/random');
+const cvWidth = 1080;
+const cvHeight = 1080;
+const noiseFreq = 0.5;
+const noiseAmp = 90;
+const gridRows = 6;
+const gridCols = 10;
 
 const settings = {
   dimensions: [ cvWidth, cvHeight ],
-  animate: true,
 };
 
 class Point {
 
-  constructor(x, y, isControlable = false) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.isControlable = isControlable;
     this.radius = 10;
   }
 
@@ -25,7 +28,7 @@ class Point {
 
     context.beginPath();
     context.translate(this.x, this.y);
-    context.fillStyle = this.isControlable ? 'red' : 'black';
+    context.fillStyle = 'black';
     context.arc(0, 0, this.radius, 0, Math.PI * 2);
     context.fill();
 
@@ -39,7 +42,7 @@ class QuadraticCurve {
    * 
    * @param  { Point[] } points
    */
-  constructor(...points) {
+  constructor({ points, displayControlPoints = false, displayControlLines = false }) {
     if (!Array.isArray(points)) {
       throw new TypeError('Array excepted');
     }
@@ -47,6 +50,8 @@ class QuadraticCurve {
       throw new TypeError('Empty array received');
     }
     this.points = points;
+    this.displayControlLines = displayControlLines;
+    this.displayControlPoints = displayControlPoints;
   }
 
   /**
@@ -58,14 +63,16 @@ class QuadraticCurve {
     
     context.save();
     
-    context.beginPath();
-    context.lineTo(this.points[0].x, this.points[0].y);
-    for (let i = 1; i < this.points.length; i++) {
-      context.lineTo(this.points[i].x, this.points[i].y);
+    if (this.displayControlLines) {
+      context.beginPath();
+      context.lineTo(this.points[0].x, this.points[0].y);
+      for (let i = 1; i < this.points.length; i++) {
+        context.lineTo(this.points[i].x, this.points[i].y);
+      }
+      context.lineWidth = 1;
+      context.strokeStyle = '#999';
+      context.stroke();
     }
-    context.lineWidth = 1;
-    context.strokeStyle = '#999';
-    context.stroke();
 
     context.beginPath();
     for (let i = 0; i < this.points.length - 1; i++) {
@@ -90,8 +97,10 @@ class QuadraticCurve {
 
     context.restore();
 
-    for (const point of this.points) {
-      point.draw(context);
+    if (this.displayControlPoints) {
+      for (const point of this.points) {
+        point.draw(context);
+      }
     }
   }
 
@@ -140,30 +149,52 @@ class QuadraticCurve {
   }
 }
 
-const sketch = ({ canvas }) => {
+class Grid {
+  constructor({ rows, cols, width, height }) {
+    this.rows = rows;
+    this.cols = cols;
+    this.width = width;
+    this.height = height;
+    this.cw = width / cols;
+    this.ch = height / rows;
+    this.curves = [];
 
-  const curve = new QuadraticCurve(
-    new Point(100, cvHeight * 0.5),
-    new Point(200, cvHeight - 300),
-    new Point(cvWidth * 0.5, cvHeight * 0.65),
-    new Point(cvWidth - 200, 250),
-    new Point(cvWidth - 100, cvHeight * 0.75),
-  );
-  canvas.addEventListener('mousedown', (ev)  => { 
-    curve.onMouseDown(ev, canvas);
-  });
-  window.addEventListener('mouseup', (ev)  => { 
-    curve.onMouseUp();
-  });
-  canvas.addEventListener('mousemove', (ev)  => { 
-    curve.onMouseMove(ev, canvas);
+    for (let i = 0; i < rows; i++) {
+      const points = [];
+      for (let j = 0; j < cols; j++) {
+        const x = j * this.cw + this.cw * 0.5 + noise2D(i, j, noiseFreq, noiseAmp);
+        const y = i * this.ch + this.ch * 0.5 + noise2D(i, j, noiseFreq, noiseAmp);
+        points.push(new Point(x, y));
+      }
+      this.curves.push(new QuadraticCurve({ points }));
+    }
+  }
+
+  /**
+   * 
+   * @param { CanvasRenderingContext2D } context 
+   */
+  draw(context) {
+    for (const curve of this.curves) {
+      curve.draw(context);
+    }
+  }
+}
+
+const sketch = ({ width, height }) => {
+
+  const grid = new Grid({
+    rows: gridRows, 
+    cols: gridCols,
+    width,
+    height
   });
 
   return ({ context, width, height }) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
 
-    curve.draw(context);
+    grid.draw(context);
   };
 };
 
