@@ -7,7 +7,7 @@
     "triangle": "canvas-sketch triangle.js --open --output build/triangle",
     "curves": "canvas-sketch curves.js --open --output build/curves",
     "grid": "canvas-sketch grid.js --open --output build/grid",
-    "segments": "canvas-sketch segments.js --open --output build/segments",
+    "segments": "canvas-sketch segments.js --open --output build/segments --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
