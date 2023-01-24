@@ -8,6 +8,7 @@
     "curves": "canvas-sketch curves.js --open --output build/curves",
     "grid": "canvas-sketch grid.js --open --output build/grid",
     "segments": "canvas-sketch segments.js --open --output build/segments --stream",
+    "clock": "canvas-sketch clock.js --open --output build/clock --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -30,6 +31,7 @@
     "canvas-sketch-cli": "^1.11.20",
     "canvas-sketch-util": "^1.10.0",
     "colormap": "^2.3.2",
-    "riso-colors": "^1.0.1"
+    "riso-colors": "^1.0.1",
+    "tone": "^14.7.77"
   }
 }
