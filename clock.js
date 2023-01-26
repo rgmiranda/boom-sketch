@@ -4,7 +4,7 @@ const colormap = require('colormap');
 const Tone = require('tone');
 
 const baseAngleSpeed = Math.PI / 180;
-const speedRatio = baseAngleSpeed * 0.15;
+const speedRatio = baseAngleSpeed * 0.125;
 
 const settings = {
   dimensions: [ 1080, 1080 ],
@@ -71,7 +71,7 @@ class Clock {
       alpha: 1
     });
 
-    const notes = [`C4`, `C#4`, `D4`, `Eb4`, `E4`, `F4`, `F#6`, `G6`, `G#6`, `A6`, `Bb6`, `B6`];
+    const notes = [`C4`, `C#4`, `D4`, `Eb4`, `E4`, `F4`, `F#3`, `G3`, `G#3`, `A3`, `Bb3`, `B3`];
 
     this.handPadding = (width * 0.5) / (hands + 1);
     this.cx = width * 0.5;
