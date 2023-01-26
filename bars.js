@@ -7,7 +7,7 @@ const fftSize = 64;
 const volume = 0.1;
 const barMinHeight = 0;
 const barMaxHeight = cvWidth * 0.4;
-const barWidth =  2 * cvWidth / fftSize;
+const barWidth =  cvWidth / fftSize;
 
 const barsColor = colormap({
   colormap: 'jet',
@@ -73,16 +73,25 @@ function createAudio() {
  */
 function visualize(audioData, context) {
   let barHeight, x, y, color;
-  const topHeight = 20;
 
   context.save();
 
   context.lineWidth = 1;
   for (let i = 0; i < audioData.length; i++) {
     barHeight = mapRange(audioData[i], 0, 255, barMinHeight, barMaxHeight);
-    x = i * barWidth;
+    x = (cvWidth * 0.5) - (i + 1) * barWidth;
     y = cvHeight - barHeight;
     color = barsColor[i];
+
+    context.fillStyle = color;
+    context.strokeStyle = color;
+    context.fillRect(x, y, barWidth, barHeight);
+
+    context.fillStyle = 'white';
+    context.fillRect(x, y - barWidth - 0.5 * barWidth, barWidth, barWidth);
+
+    x = cvWidth * 0.5 + i * barWidth;
+
     context.fillStyle = color;
     context.strokeStyle = color;
     context.fillRect(x, y, barWidth, barHeight);
