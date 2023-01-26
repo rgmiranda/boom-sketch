@@ -9,6 +9,7 @@
     "grid": "canvas-sketch grid.js --open --output build/grid",
     "segments": "canvas-sketch segments.js --open --output build/segments --stream",
     "clock": "canvas-sketch clock.js --open --output build/clock --stream",
+    "flower": "canvas-sketch flower.js --open --output build/flower --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
