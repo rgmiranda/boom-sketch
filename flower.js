@@ -54,7 +54,7 @@ function addListeners () {
 
 function createAudio() {
   audio = document.createElement('audio');
-  audio.src = 'audio/wasteland.mp3';
+  audio.src = 'audio/rise.mp3';
   audio.volume = volume;
   
   audioContext = new AudioContext();
@@ -79,15 +79,13 @@ function createBars() {
   }
 }
 
-const sketch = ({canvas}) => {
-  canvas.style.filter = 'blur(5px) contrast(300%)';
+const sketch = () => {
   addListeners();
   createBars();
   return ({ context, width, height, frame }) => {
     let radius, idx;
     let color, startAngle, endAngle;
 
-    context.globalAlpha = 0.5;
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 

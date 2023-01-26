@@ -52,7 +52,7 @@ function addListeners () {
 
 function createAudio() {
   audio = document.createElement('audio');
-  audio.src = 'audio/wasteland.mp3';
+  audio.src = 'audio/rise.mp3';
   audio.volume = volume;
   
   audioContext = new AudioContext();
