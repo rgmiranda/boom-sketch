@@ -2,6 +2,7 @@ const canvasSketch = require('canvas-sketch');
 const { noise2D } = require('canvas-sketch-util/random');
 const { mapRange } = require('canvas-sketch-util/math');
 const colormap = require('colormap')
+
 const bgColor = '#000';
 const cvWidth = 1080;
 const cvHeight = 1080;
@@ -9,9 +10,14 @@ const noiseFreq = 0.001;
 const noiseAmp = 100;
 const gridRows = 8;
 const gridCols = 72;
+const colormapType = 'jet';
+const mxCoef = 1;
+const myCoef = 0.9;
+const curveMinLineWidth = 0;
+const curveMaxLineWidth = 10;
 
 const segmentColors = colormap({
-  colormap: 'winter',
+  colormap: colormapType,
   nshades: noiseAmp,
   format: 'hex',
   alpha: 1
@@ -34,7 +40,7 @@ class Point {
   setNoiseOffset(noiseOffset) {
     this.noiseOffset = noiseOffset;
     this.noise = noise2D(this.origX + this.noiseOffset, this.origY + this.noiseOffset, noiseFreq, noiseAmp)
-    this.weight = mapRange(this.noise, -noiseAmp, noiseAmp, 0, 5);
+    this.weight = mapRange(this.noise, -noiseAmp, noiseAmp, curveMinLineWidth, curveMaxLineWidth);
     this.color = segmentColors[Math.floor(mapRange(this.noise, -noiseAmp, noiseAmp, 0, noiseAmp))];
   }
 
@@ -113,8 +119,8 @@ class QuadraticCurve {
       const curr = this.points[i];
       const next = this.points[i + 1];
       
-      const mx = (curr.x + next.x) * 0.9;
-      const my = (curr.y + next.y);
+      const mx = (curr.x + next.x) * mxCoef;
+      const my = (curr.y + next.y) * myCoef;
 
       curr.setNoiseOffset(frame);
       
