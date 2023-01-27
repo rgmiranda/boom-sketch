@@ -11,6 +11,7 @@
     "clock": "canvas-sketch clock.js --open --output build/clock --stream",
     "flower": "canvas-sketch flower.js --open --output build/flower --stream",
     "bars": "canvas-sketch bars.js --open --output build/bars --stream",
+    "arcs": "canvas-sketch arcs.js --open --output build/arcs --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -33,6 +34,7 @@
     "canvas-sketch-cli": "^1.11.20",
     "canvas-sketch-util": "^1.10.0",
     "colormap": "^2.3.2",
+    "eases": "^1.0.8",
     "riso-colors": "^1.0.1",
     "tone": "^14.7.77"
   }
