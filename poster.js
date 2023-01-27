@@ -1,46 +1,45 @@
 const canvasSketch = require('canvas-sketch');
 const { mapRange } = require('canvas-sketch-util/math');
-const { rangeFloor, boolean } = require('canvas-sketch-util/random');
-const colormap = require('colormap');
+const { shuffle, range, value } = require('canvas-sketch-util/random');
 const eases = require('eases');
 
 const cvWidth = 1080;
 const cvHeight = 1080;
 
-const fftSize = 64;
+const fftSize = 512;
 const volume = 0.1;
-const numCircles = 5;
-const numSlices = 9;
+const numCircles = 10;
+const numSlices = 1;
 const sliceAngle = Math.PI * 2 / numSlices;
 const baseRadius = 200;
-const radiusRatio = 200;
+const baseWidth = 10;
+const radiusRatio = 100;
 const circles = [];
-const bins = [];
-const circleColors = colormap({
-  colormap: 'magma',
-  nshades: 9,
-  format: 'hex',
-  alpha: 1
-});
+const bins = shuffle(Array.from(Array(numCircles).keys()));
 
-let prevRadius = baseRadius;
-for (let i = 0; i < numCircles; i++) {
-  const t = (i + 1) / numCircles;
-  const width = eases.quadIn(t) * radiusRatio;
-  const radius = prevRadius + width * 0.5;
-  circles.push({
-    lineWidth: width,
-    color: circleColors[i],
-    radius
-  });
-  for (let j = 0; j < numSlices; j++) {
-    if (boolean()) {
-      bins.push(rangeFloor(0, fftSize * 0.25));
-    } else {
-      bins.push(-1);
-    }
+function createCircles() {
+  let prevRadius = baseRadius;
+  for (let i = 0; i < numCircles; i++) {
+    const t = (i + 1) / numCircles;
+    const width = baseWidth + eases.cubicIn(t) * radiusRatio;
+    const radius = prevRadius + width * 0.5 + 1;
+    const angleOffset = range(Math.PI * -0.25, Math.PI * 0.25) - Math.PI * 0.5;
+    const angleSpeed = value() * 0.01;
+    circles.push({
+      lineWidth: width,
+      color: 'black',
+      radius,
+      angleOffset,
+      angleSpeed
+    });
+    prevRadius = radius + width * 0.5 + 1;
   }
-  prevRadius = radius + width * 0.5;
+}
+
+function updateCircles() {
+  for (let i = 0; i < numCircles; i++) {
+    circles[i].angleOffset += circles[i].angleSpeed;
+  }
 }
 
 /** @type { HTMLAudioElement } */
@@ -102,32 +101,27 @@ function createAudio() {
  */
 function visualize(audioData, context, width, height) {
 
-  let lineWidth, color, radius, mapped, bin;
+  let lineWidth, color, radius, mapped, bin, phi;
 
   context.save();
   context.translate(width * 0.5, height * 0.5);
+  context.scale(1, -1);
 
   for (let i = 0; i < numCircles; i++) {
     context.save();
     for (let j = 0; j < numSlices; j++) {
       context.rotate(sliceAngle);
-      ({ lineWidth, color, radius } = circles[i]);
-
-      bin = bins[i * numCircles + j];
-      if (bin === -1) {
-        continue;
-      }
+      ({ lineWidth, color, radius, angleOffset } = circles[i]);
+      
+      bin = bins[i * numSlices + j];
 
       mapped = mapRange(audioData[bin], 0, 255, 0, 1, true);
-      lineWidth *= mapped;
-      if (lineWidth < 1) {
-        continue;
-      }
+      phi = sliceAngle * mapped;
 
       context.beginPath();
       context.lineWidth = lineWidth;
       context.strokeStyle = color;
-      context.arc(0, 0, radius, 0 , sliceAngle);
+      context.arc(0, 0, radius, angleOffset , phi + angleOffset);
       context.stroke();
 
     }
@@ -138,6 +132,7 @@ function visualize(audioData, context, width, height) {
 }
 
 const sketch = () => {
+  createCircles();
   addListeners();
   return ({ context, width, height, frame }) => {
 
@@ -150,6 +145,7 @@ const sketch = () => {
 
     analyserNode.getByteFrequencyData(audioData);
     visualize(audioData, context, width, height);
+    updateCircles();
   };
 };
 

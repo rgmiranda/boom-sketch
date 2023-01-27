@@ -12,6 +12,7 @@
     "flower": "canvas-sketch flower.js --open --output build/flower --stream",
     "bars": "canvas-sketch bars.js --open --output build/bars --stream",
     "arcs": "canvas-sketch arcs.js --open --output build/arcs --stream",
+    "poster": "canvas-sketch poster.js --open --output build/poster --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
