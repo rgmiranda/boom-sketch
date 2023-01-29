@@ -9,6 +9,7 @@ const cvHeight = 1080;
 const fftSize = 64;
 const volume = 0.1;
 const numBins = 16;
+const minThreshold = 15;
 const maxThreshold = 30;
 
 /** @type { HTMLAudioElement } */
@@ -38,7 +39,7 @@ const bins = Array(numBins).fill().map( () => ({
   bin: rangeFloor(0, 16),
   x : rangeFloor(0, cvWidth),
   y: rangeFloor(0, cvHeight),
-  threshold: rangeFloor(1, maxThreshold),
+  threshold: rangeFloor(minThreshold, maxThreshold),
   color: risoColors[rangeFloor(0, risoColors.length)].hex
 }));
 
