@@ -13,6 +13,7 @@
     "bars": "canvas-sketch bars.js --open --output build/bars --stream",
     "arcs": "canvas-sketch arcs.js --open --output build/arcs --stream",
     "poster": "canvas-sketch poster.js --open --output build/poster --stream",
+    "drops": "canvas-sketch drops.js --open --output build/drops --stream",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
