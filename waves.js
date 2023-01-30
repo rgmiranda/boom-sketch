@@ -1,15 +1,27 @@
 const canvasSketch = require('canvas-sketch');
 const { mapRange } = require('canvas-sketch-util/math');
 const { rangeFloor, range } = require('canvas-sketch-util/random');
+const colorMap = require('colormap');
 
-const cvWidth = 1080;
-const cvHeight = 1080;
+const cvWidth = 512;
+const cvHeight = 512;
+
+const bgColor = 'black';
+const colorMapType = 'winter';
+const waveLineWidth = 1;
 
 const fftSize = 64;
 const volume = 0.1;
-const numWaves = 10;
+const numWaves = 12;
 const rowSize = cvHeight * 0.9;
 const colSize = cvWidth;
+const baseOffset = 0.5;
+const wavesColor = colorMap({
+  colormap: colorMapType,
+  nshades: numWaves > 9 ? numWaves : 9,
+  format: 'hex',
+  alpha: 1
+});
 
 /** @type { HTMLAudioElement } */
 let audio;
@@ -62,36 +74,23 @@ function createAudio() {
 }
 
 class Wave {
-  constructor({ x, y, width, height, freq }) {
+  constructor({ x, y, width, height, freq, color }) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.freq = freq;
-    
-    this.points = [];
-    
-    const step = 0.125 * this.width / this.freq;
-    let i;
-    for (i = 0; i < this.width; i += step) {
-      this.points.push({
-        x: this.x + i,
-        cy: Math.sin((i / this.width) * 2 * Math.PI * freq) * this.height * 0.5 * Math.sin(Math.PI * i / this.width)
-      });
-    }
-    this.points.push({
-      x: this.x + this.width,
-      cy: 0
-    });
-    console.log(this.points.length);
+    this.color = color;
   }
 
   /**
    * 
    * @param { CanvasRenderingContext2D } context 
+   * @param { number } amp
+   * @param { number } offset
    */
-  draw(context, amp) {
-    let mx, my, nx, ny, px, py;
+  draw(context, amp, offset) {
+    let mx, my, nx, ny, px, py, cy;
     px = this.x;
     py = this.y;
 
@@ -99,20 +98,24 @@ class Wave {
 
     context.beginPath();
     context.moveTo(this.x, this.y);
-    for (const p of this.points) {
-      nx = p.x;
-      ny = this.y + amp * p.cy;
+    const step = 0.125 * this.width / this.freq;
+    for (let i = 0; i < this.width; i += step) {
+      nx = this.x + i;
+      cy = Math.sin(offset + (i / this.width) * 2 * Math.PI * this.freq) * this.height * 0.5 * Math.sin(Math.PI * i / this.width)
+      ny = this.y + amp * cy;
       mx = (px + nx) * 0.5;
       my = (py + ny) * 0.5;
-      
+
       context.quadraticCurveTo(px, py, mx, my);
-      
+
       px = nx;
       py = ny;
     }
-    context.quadraticCurveTo(px, py, nx, ny);
+    context.quadraticCurveTo(mx, my, nx, ny);
+    context.lineTo(this.x + this.width, this.y);
 
-    context.strokeStyle = 'black';
+    context.strokeStyle = this.color;
+    context.lineWidth = waveLineWidth;
     context.stroke();
 
     context.restore();
@@ -129,7 +132,8 @@ for (let i = 0; i < numWaves; i++) {
       y: cvHeight * 0.5,
       width: colSize,
       height: rowSize,
-      freq: range(8, 32),
+      freq: range(8, 16),
+      color: wavesColor[i]
     }),
     bin: rangeFloor(0, numWaves * 2)
   });
@@ -139,27 +143,28 @@ for (let i = 0; i < numWaves; i++) {
  * 
  * @param { Uint8Array } audioData
  * @param { CanvasRenderingContext2D } context 
+ * @param { number } frame
  */
-function visualize(audioData, context) {
+function visualize(audioData, context, frame) {
   let amp;
   for (const w of waves) {
     amp = mapRange(audioData[w.bin], 0, 255, 0, 1, true);
-    w.wave.draw(context, amp);
+    w.wave.draw(context, amp, frame * baseOffset);
   }
 }
 
 
 const sketch = () => {
   addListeners();
-  return ({ context, width, height }) => {
-    context.fillStyle = 'white';
+  return ({ context, width, height, frame }) => {
+    context.fillStyle = bgColor;
     context.fillRect(0, 0, width, height);
 
     if (!audioContext) {
       return;
     }
     analyserNode.getByteFrequencyData(audioData);
-    visualize(audioData, context);
+    visualize(audioData, context, frame);
   };
 };
 
