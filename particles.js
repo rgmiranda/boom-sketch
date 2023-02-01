@@ -1,6 +1,8 @@
 const canvasSketch = require('canvas-sketch');
 const { rangeFloor } = require('canvas-sketch-util/random');
-const  { Vector } = require('./vector');
+const { Vector } = require('./vector');
+const colormap = require('colormap');
+const { quadIn } = require('eases');
 
 const cvWidth = 1080;
 const cvHeight = 1080;
@@ -8,6 +10,16 @@ const cvHeight = 1080;
 const k = 0.5;
 const c = 0.8;
 const repelRadius = 40000;
+const circleCount = 15;
+const dotRadius = 10;
+const dotPadding = 4;
+const velocityDamp = 0.98;
+const colors = colormap({
+  colormap: 'winter',
+  nshades: circleCount,
+  format: 'hex',
+  alpha: 1
+});
 
 let mouseX, mouseY;
 
@@ -17,7 +29,7 @@ const settings = {
 };
 
 class Particle {
-  constructor({x, y, radius}) {
+  constructor({x, y, radius, color}) {
     /** @type { Vector } */
     this.pos = new Vector(x, y);
     /** @type { Vector } */
@@ -28,6 +40,8 @@ class Particle {
     this.vel = new Vector(0, 0);
     /** @type { number } */
     this.radius = radius;
+    /** @type { string } */
+    this.color = color;
   }
 
   /**
@@ -61,7 +75,7 @@ class Particle {
 
   update() {
     this.vel.add(this.acc);
-    this.vel.mult(0.97);
+    this.vel.mult(velocityDamp);
     this.pos.add(this.vel);
     this.acc.mult(0);
   }
@@ -71,10 +85,11 @@ class Particle {
    * @param { CanvasRenderingContext2D } context 
    */
   draw(context) {
+    console.log(this)
     context.beginPath();
     context.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI);
-    context.fillStyle = '#AAA';
-    context.strokeStyle = '#FFF';
+    context.fillStyle = this.color;
+    context.strokeStyle = this.color;
     context.stroke();
     context.fill();
   }
@@ -85,12 +100,14 @@ class Particle {
  * @param { CanvasRenderingContext2D } context
  */
 function visualize(context) {
+  if (mouseX !== undefined && mouseY !== undefined) {
+    context.beginPath();
+    context.arc(mouseX, mouseY, Math.sqrt(repelRadius), 0, Math.PI * 2);
+    context.strokeStyle = '#666';
+    context.stroke();
+  }
   for (const p of particles) {
     if (mouseX !== undefined && mouseY !== undefined) {
-      context.beginPath();
-      context.arc(mouseX, mouseY, Math.sqrt(repelRadius), 0, Math.PI * 2);
-      context.strokeStyle = '#666';
-      context.stroke();
       p.repel(mouseX, mouseY);
     }
     p.attract();
@@ -114,12 +131,32 @@ function addListeners(canvas) {
 const particles = [];
 
 const sketch = ({canvas, width, height }) => {
-  for (let i = 0; i < 200; i++) {
-    particles.push(new Particle({
-      x: rangeFloor(0, width),
-      y: rangeFloor(0, height),
-      radius: rangeFloor(5, 20)
-    }));
+  let particleCount, phi, angleSize;
+  const mx = width * 0.5;
+  const my = height * 0.5;
+  const initAngleOffset = Math.PI / ( 2 * circleCount );
+  for (let i = 0; i < circleCount; i++) {
+    if (i === 0) {
+      particles.push(new Particle({
+        x: mx,
+        y: my,
+        radius: (1- quadIn(i / circleCount)) * dotRadius,
+        color: colors[i]
+      }));
+    } else {
+      particleCount = Math.floor((i + 1) * Math.PI);
+      angleSize = 2 * Math.PI / particleCount;
+      phi = initAngleOffset * i;
+      for (let j = 0; j < particleCount; j++) {
+        particles.push(new Particle({
+          x: mx + Math.cos(phi) * 2 * i * (dotRadius + dotPadding),
+          y: my + Math.sin(phi) * 2 * i * (dotRadius + dotPadding),
+          radius: (1 - quadIn(i / circleCount)) * dotRadius,
+          color: colors[i]
+        }));
+        phi += angleSize;
+      }
+    }
   }
 
   addListeners(canvas);
