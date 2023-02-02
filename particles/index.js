@@ -1,5 +1,5 @@
 const canvasSketch = require('canvas-sketch');
-const { Particle } = require('./particle');
+const { Particle, Hexagon } = require('./particle');
 const colormap = require('colormap');
 const { quadIn } = require('eases');
 
@@ -7,13 +7,15 @@ const cvWidth = 1080;
 const cvHeight = 1080;
 const circleCount = 15;
 const dotRadius = 10;
-const dotPadding = 5;
+const dotPadding = 4;
 const colors = colormap({
   colormap: 'winter',
   nshades: circleCount,
   format: 'hex',
   alpha: 1
 });
+const ParticleClass = Particle;
+const easing = t => 1 - quadIn(t);
 
 let mouseX, mouseY;
 
@@ -58,24 +60,24 @@ function createParticles(width, height) {
   let particleCount, phi, angleSize;
   const mx = width * 0.5;
   const my = height * 0.5;
-  const initAngleOffset = Math.PI / (2 * circleCount);
+  const initAngleOffset = Math.PI / 6;
   for (let i = 0; i < circleCount; i++) {
     if (i === 0) {
-      particles.push(new Particle({
+      particles.push(new ParticleClass({
         x: mx,
         y: my,
-        radius: (1 - quadIn(i / circleCount)) * dotRadius,
+        radius: easing(i / circleCount) * dotRadius,
         color: colors[i]
       }));
     } else {
-      particleCount = Math.floor((i + 1) * Math.PI);
+      particleCount = Math.floor(2 * i * Math.PI);
       angleSize = 2 * Math.PI / particleCount;
       phi = initAngleOffset * i;
       for (let j = 0; j < particleCount; j++) {
-        particles.push(new Particle({
+        particles.push(new ParticleClass({
           x: mx + Math.cos(phi) * 2 * i * (dotRadius + dotPadding),
           y: my + Math.sin(phi) * 2 * i * (dotRadius + dotPadding),
-          radius: (1 - quadIn(i / circleCount)) * dotRadius,
+          radius: easing(i / circleCount) * dotRadius,
           color: colors[i]
         }));
         phi += angleSize;

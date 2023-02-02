@@ -67,13 +67,47 @@ export class Particle {
    * 
    * @param { CanvasRenderingContext2D } context 
    */
-  draw(context) {
-    
+  createDrawingPath(context) {
     context.beginPath();
     context.arc(this.pos.x, this.pos.y, this.scale * this.radius, 0, 2 * Math.PI);
+  }
+
+  /**
+   * 
+   * @param { CanvasRenderingContext2D } context 
+   */
+  draw(context) {
+    this.createDrawingPath(context);
     context.fillStyle = this.color;
     context.strokeStyle = this.color;
     context.stroke();
     context.fill();
+  }
+}
+export class Hexagon extends Particle {
+
+  /**
+   * 
+   * @param { CanvasRenderingContext2D } context 
+   */
+  createDrawingPath(context) {
+    let phi, x, y;
+    const angleStep = Math.PI / 3;
+
+    context.beginPath();
+
+    phi = -Math.PI / 2;
+    x = this.pos.x + Math.cos(phi) * this.scale * this.radius;
+    y = this.pos.y + Math.sin(phi) * this.scale * this.radius;
+    context.moveTo(x, y);
+
+    for (let i = 1; i < 6; i++) {
+      phi += angleStep;
+      x = this.pos.x + Math.cos(phi) * this.scale * this.radius;
+      y = this.pos.y + Math.sin(phi) * this.scale * this.radius;
+      context.lineTo(x, y);
+    }
+
+    context.closePath();
   }
 }
