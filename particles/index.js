@@ -6,15 +6,16 @@ const { quadIn } = require('eases');
 const cvWidth = 1080;
 const cvHeight = 1080;
 const circleCount = 15;
-const dotRadius = 10;
-const dotPadding = 4;
+const dotRadius = 20;
+const dotPadding = 0;
 const colors = colormap({
   colormap: 'winter',
   nshades: circleCount,
   format: 'hex',
   alpha: 1
 });
-const ParticleClass = Particle;
+let mouseDown = false;
+const ParticleClass = Hexagon;
 const easing = t => 1 - quadIn(t);
 
 let mouseX, mouseY;
@@ -30,7 +31,7 @@ const settings = {
  */
 function visualize(context) {
   for (const p of particles) {
-    if (mouseX !== undefined && mouseY !== undefined) {
+    if (mouseDown && mouseX !== undefined && mouseY !== undefined) {
       p.repel(mouseX, mouseY);
     }
     p.attract();
@@ -47,10 +48,23 @@ function visualize(context) {
  * @param { HTMLCanvasElement } canvas
  */
 function addListeners(canvas) {
-  canvas.addEventListener('mousemove', (ev) => {
+  const onMouseMove = (ev) => {
     mouseX = (ev.offsetX / canvas.offsetWidth) * canvas.width;
     mouseY = (ev.offsetY / canvas.offsetHeight) * canvas.height;
-  });
+  };
+
+  const onMouseDown = (ev) => {
+    mouseDown = true;
+    onMouseMove(ev);
+  };
+
+  const onMouseUp = () => {
+    mouseDown = false;
+  };
+
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('mousedown', onMouseDown);
+  canvas.addEventListener('mouseup', onMouseUp);
 }
 
 /** @type { Particle[] } */
@@ -60,7 +74,7 @@ function createParticles(width, height) {
   let particleCount, phi, angleSize;
   const mx = width * 0.5;
   const my = height * 0.5;
-  const initAngleOffset = Math.PI / 6;
+  const initAngleOffset = Math.PI / 3;
   for (let i = 0; i < circleCount; i++) {
     if (i === 0) {
       particles.push(new ParticleClass({

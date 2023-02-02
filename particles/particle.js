@@ -1,3 +1,4 @@
+import { offsetHSL } from 'canvas-sketch-util/color';
 import { mapRange } from 'canvas-sketch-util/math';
 const { Vector } = require('./vector');
 
@@ -78,8 +79,9 @@ export class Particle {
    */
   draw(context) {
     this.createDrawingPath(context);
-    context.fillStyle = this.color;
-    context.strokeStyle = this.color;
+    const color = offsetHSL(this.color, 0, 0, (this.scale - 1) * 15).hex;
+    context.fillStyle = color;
+    context.strokeStyle = color;
     context.stroke();
     context.fill();
   }
