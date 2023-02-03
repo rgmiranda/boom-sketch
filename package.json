@@ -16,6 +16,7 @@
     "drops": "canvas-sketch drops.js --open --output build/drops --stream",
     "waves": "canvas-sketch waves.js --open --output build/waves --stream=gif",
     "particles": "canvas-sketch particles/index.js --open --output build/particles --stream=gif",
+    "rain": "canvas-sketch particles/rain.js --open --output build/rain --stream=gif",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
