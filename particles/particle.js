@@ -1,64 +1,59 @@
 import { offsetHSL } from 'canvas-sketch-util/color';
 import { mapRange } from 'canvas-sketch-util/math';
-const { Vector } = require('./vector');
 
-const d = 0.98;
-const k = 0.5;
-const c = 0.8;
-const repelRadius = 22500;
-const ratioRadius = 250000;
+const friction = 0.7;
+const ease = 0.01;
+const repelRadius = 80000;
+const ratioRadius = 80000;
 
 export class Particle {
   constructor({x, y, radius, color}) {
-    /** @type { Vector } */
-    this.pos = new Vector(x, y);
-    /** @type { Vector } */
-    this.origin = this.pos.copy();
-    /** @type { Vector } */
-    this.acc = new Vector(0, 0);
-    /** @type { Vector } */
-    this.vel = new Vector(0, 0);
-    /** @type { number } */
+    this.pos = {x, y};
+    this.origin = {x, y};
+    this.acc = {x: 0, y: 0};
+    this.vel = { x: 0, y: 0 };
     this.radius = radius;
-    /** @type { string } */
     this.color = color;
     this.scale = 1;
   }
 
-  /**
-   * 
-   * @param { Vector } force 
-   */
   applyForce(force) {
-    this.acc.add(force);
+    this.acc.x += force.x;
+    this.acc.y += force.y;
   }
 
   attract() {
-    const force = this.origin.copy();
-    force.sub(this.pos);
-    if (force.mag === 0) {
-      return;
-    }
-    force.mult(k / force.mag);
+    const dx = this.origin.x - this.pos.x;
+    const dy = this.origin.y - this.pos.y;
+    const force = {x: dx * ease, y: dy * ease};
     this.applyForce(force);
   }
 
   repel(x, y) {
     const dx = this.pos.x - x;
     const dy = this.pos.y - y;
-    if (dx * dx + dy * dy > repelRadius) {
+    const distance = dx * dx + dy * dy;
+    if (distance > repelRadius) {
       return;
     }
-    const force = new Vector(dx, dy);
-    force.mult(c / force.mag);
+    const angle = Math.atan2(dy, dx);
+    const strength = repelRadius / distance;
+    const force = {
+      x: Math.cos(angle) * strength,
+      y: Math.sin(angle) * strength,
+    }
     this.applyForce(force);
   }
 
   update() {
-    this.vel.add(this.acc);
-    this.vel.mult(d);
-    this.pos.add(this.vel);
-    this.acc.mult(0);
+    this.vel.x += this.acc.x;
+    this.vel.y += this.acc.y;
+    this.vel.x *= friction;
+    this.vel.y *= friction;
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+    this.acc.x = 0;
+    this.acc.y = 0;
     const dx = this.pos.x - this.origin.x;
     const dy = this.pos.y - this.origin.y;
     this.scale = mapRange(dx * dx + dy * dy, 0, ratioRadius, 1, 5, true);
@@ -86,6 +81,7 @@ export class Particle {
     context.fill();
   }
 }
+
 export class Hexagon extends Particle {
 
   /**
@@ -110,6 +106,19 @@ export class Hexagon extends Particle {
       context.lineTo(x, y);
     }
 
+    context.closePath();
+  }
+}
+
+export class Square extends Particle {
+
+  /**
+   * 
+   * @param { CanvasRenderingContext2D } context 
+   */
+  createDrawingPath(context) {
+    context.beginPath();
+    context.rect(this.pos.x - this.radius * 0.5, this.pos.y - this.radius * 0.5, this.radius, this.radius);
     context.closePath();
   }
 }
