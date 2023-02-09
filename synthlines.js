@@ -1,6 +1,6 @@
 const canvasSketch = require('canvas-sketch');
-const { offsetHSL } = require('canvas-sketch-util/color');
-const { rangeFloor } = require('canvas-sketch-util/random');
+const { offsetHSL, contrastRatio } = require('canvas-sketch-util/color');
+const { rangeFloor, pick } = require('canvas-sketch-util/random');
 const createColorMap = require('colormap');
 
 const cvWidth = 1080;
@@ -159,6 +159,43 @@ const sketch = () => {
       context.stroke();
     }
     context.restore();
+
+
+    for (let i = 0; i < 2; i++) {
+
+      x = rangeFloor(width * 0.1, width * 0.9);
+      y = rangeFloor(height * 0.1, height * 0.9);
+      const neonColor = '#FF33FF';
+      const neonRadius = 30;
+      const gradient = context.createRadialGradient(x, y, 0, x, y, neonRadius)
+      gradient.addColorStop(0, `${neonColor}FF`);
+      gradient.addColorStop(0.8, `${neonColor}33`);
+      gradient.addColorStop(1, `${neonColor}00`);
+      context.fillStyle = gradient;
+      context.beginPath();
+      context.arc(x, y, neonRadius, 0, Math.PI * 2);
+      context.fill()
+  
+      context.beginPath();
+      context.moveTo(x, y);
+      context.bezierCurveTo(
+        x,
+        y + rangeFloor(0, height),
+        x + rangeFloor(0, width) ,
+        y,
+        pick([0, width]),
+        pick([0, height])
+      );
+      context.strokeStyle = `${neonColor}00`;
+      context.shadowColor = neonColor;
+      context.lineWidth = 10;
+      context.shadowBlur = 10;
+      context.stroke();
+      context.strokeStyle = neonColor;
+      context.shadowColor = undefined;
+      context.lineWidth = 2;
+      context.stroke();
+    }
 
   };
 };
