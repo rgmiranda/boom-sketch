@@ -37,22 +37,27 @@ const sketch = () => {
       arcColor = arcsColors[Math.floor(mapRange(radius, width * 0.1, width * 0.45, 0, nshades))];
       lineWidth = rangeFloor(2, 5);
       rectHeight = rangeFloor(width * 0.2, width * 0.3);
-      rectRadius = rangeFloor(width * 0.1, width * 0.2);
+      rectRadius = 0;
       rectWidth = rangeFloor(2, 10);
 
       context.save();
 
-      context.translate(width * 0.5, height * 0.5);
+      context.translate(width * 0.5 + Math.cos(currAngle) * 500, height * 0.5 + Math.sin(currAngle) * 500);
       context.rotate(currAngle);
-
-      context.fillStyle = fg;
       
+      context.fillStyle = fg;      
       context.fillRect(
         -rectWidth * 0.5,
-        rectHeight - rectRadius * 0.5,
+        rectRadius,
         rectWidth,
         rectHeight
       );
+        
+      context.restore();
+      
+      context.save();
+      context.translate(width * 0.5, height * 0.5);
+      context.rotate(currAngle);
 
       context.beginPath();
       context.arc(0, 0, radius, range(-Math.PI, 0), range(0, Math.PI));
