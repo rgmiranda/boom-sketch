@@ -12,8 +12,8 @@ export class StormBackground {
     this.height = height;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.ySpeed = -6;
-    this.xSpeed = -3
+    this.ySpeed = -10;
+    this.xSpeed = -6
   }
 
   /**
@@ -42,7 +42,7 @@ export class StormBackground {
   update() {
     this.yOffset += this.ySpeed;
     this.xOffset += this.xSpeed;
-    this.xSpeed = noise1D(noiseIdx, noiseFreq, noiseAmp) - 3;
+    this.xSpeed = noise1D(noiseIdx, noiseFreq, noiseAmp) - 2 * noiseAmp;
     noiseIdx++;
     console.log(this.xSpeed);
   }
