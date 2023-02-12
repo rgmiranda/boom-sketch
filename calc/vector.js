@@ -26,11 +26,7 @@ export class Vector {
 
   #resetValues() {
     this.#mag = undefined;
-    if (this.#mag > 0) {
-      this.#angle = Math.abs(Math.asin(this.#x / this.#mag));
-    } else {
-      this.#angle = 0;
-    }
+    this.#angle = undefined;
   }
 
   get mag() {
@@ -70,7 +66,7 @@ export class Vector {
   }
 
   normalize() {
-    if (this.#mag = 0) {
+    if (this.mag === 0) {
       return;
     }
     this.#x /= this.#mag;
@@ -95,6 +91,7 @@ export class Vector {
   add(vector) {
     this.#x += vector.#x;
     this.#y += vector.#y;
+    this.#resetValues();
   }
 
   /**
@@ -104,6 +101,7 @@ export class Vector {
   sub(vector) {
     this.#x -= vector.#x;
     this.#y -= vector.#y;
+    this.#resetValues();
   }
 
   /**
