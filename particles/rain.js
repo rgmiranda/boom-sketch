@@ -1,6 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const { mapRange } = require('canvas-sketch-util/math');
-const { Vector } = require('./vector');
+const { Vector } = require('../calc');
 
 const cvWidth = 400;
 const cvHeight = 400;
