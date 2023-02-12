@@ -1,27 +1,31 @@
 const canvasSketch = require('canvas-sketch');
-const { parse, style, offsetHSL } = require('canvas-sketch-util/color');
 const { mapRange } = require('canvas-sketch-util/math');
-const { noise2D, getRandomSeed, setSeed, rangeFloor, range, chance } = require('canvas-sketch-util/random');
+const { noise2D, getRandomSeed, setSeed } = require('canvas-sketch-util/random');
 const createColorMap = require('colormap');
 
 const cvWidth = 1080;
 const cvHeight = 1080;
 
 
-const numSegments = 128;
-const numLines = 12;
+const numRows = 128;
+const numLines = 128;
+const noiseAmp = 250;
+const noiseFreq = 0.001;
 const noiseSeed = getRandomSeed();
 
-const pointPadding = cvWidth / (numSegments + 1);
+
+const linePadding = cvWidth / (numLines + 1);
+const pointPadding = cvHeight / (numRows + 1);
 
 const nshades = 32;
-const colormap = 'winter';
+const colormap = 'bone'
 const colors = createColorMap({
   colormap,
   nshades,
   format: 'hex',
   alpha: 1
 });
+const displayControlPoints = false;
 
 const settings = {
   dimensions: [cvWidth, cvHeight],
@@ -32,12 +36,12 @@ setSeed(noiseSeed);
 
 class Point {
 
-  constructor(x, y, width, color) {
+  constructor(x, y, color, width) {
     this.x = x;
     this.y = y;
-    this.radius = 2;
-    this.width = width;
     this.color = color;
+    this.width = width;
+    this.radius = 2;
   }
 
   /**
@@ -77,11 +81,22 @@ class Curve {
    * @param { CanvasRenderingContext2D } context 
    */
   draw(context) {
+
+
     context.save();
 
+    if (displayControlPoints) {
+      context.beginPath();
+      context.lineTo(this.points[0].x, this.points[0].y);
+      for (let i = 1; i < this.points.length; i++) {
+        context.lineTo(this.points[i].x, this.points[i].y);
+      }
+      context.lineWidth = 1;
+      context.strokeStyle = '#999';
+      context.stroke();
+    }
+
     let prev, curr, next;
-    /** @type { Point[] } */
-    const sparks = [];
     for (let i = 1; i < this.points.length - 1; i++) {
       prev = this.points[i - 1];
       curr = this.points[i + 0];
@@ -98,58 +113,35 @@ class Curve {
         context.quadraticCurveTo(curr.x, curr.y, mx, my);
       }
       context.strokeStyle = curr.color;
-      context.lineWidth = curr.width;
-      context.shadowColor = curr.color;
-      context.shadowBlur = curr.width * 2.5;
+      context.lineWidth = 4;
       context.stroke();
-
-      if (chance(0.005)) {
-        sparks.push(curr);
-      }
-
       prev = curr;
     }
+
     context.restore();
 
-    for (const spark of sparks) {
-      const gradRadius = spark.width * 3;
-      const gradient = context.createRadialGradient(0, 0, 0, 0, 0, gradRadius);
-
-      const startColor = offsetHSL(spark.color, 0, 0, 50).hex;
-      const endColor = style([...parse(spark.color).rgb, 0]);
-      gradient.addColorStop(0, startColor);
-      gradient.addColorStop(1, endColor);
-
-      context.save();
-
-      context.translate(spark.x, spark.y);
-      context.arc(0, 0, gradRadius, 0, Math.PI * 2);
-      context.fillStyle = gradient;
-      context.fill();
-
-      context.restore();
+    if (displayControlPoints) {
+      for (const point of this.points) {
+        point.draw(context);
+      }
     }
   }
 }
 
-/** @type { Curve[] } */
 const curves = [];
 
-const sketch = ({ height }) => {
-  let points, x, y, yOffset, lineWidth, lineColor, noiseAmp, noiseFreq, noiseOffset;
+const sketch = () => {
+  let points, x, y, nx, lineWidth, lineColor;
   for (let i = 0; i < numLines; i ++) {
-    y = rangeFloor(0, height);
-    noiseAmp = mapRange(y, 0, height, 110, 200);
-    noiseFreq = mapRange(y, 0, height, 0.001, 0.0001);
-    noiseOffset = range(0, height);
+    x = (i + 1) * linePadding;
     points = [];
-    lineColor = colors[Math.floor(mapRange(y, 0, height, 0, nshades))];
-    lineWidth = Math.floor(mapRange(y, 0, height, 2, 10));
-    for (let j = -2; j < numSegments + 2; j++) {
-      x = (j + 1) * pointPadding;
-      yOffset = noise2D(x + noiseOffset, y, noiseFreq, noiseAmp);
-
-      points.push(new Point(x, y + yOffset, lineWidth, lineColor));
+    for (let j = 0; j < numRows; j++) {
+      y = (j + 1) * pointPadding;
+      nx = noise2D(x, y, noiseFreq, noiseAmp);
+      nx *= 1;//mapRange(Math.abs(x - y), 0, cvWidth, 1, 0.001);
+      lineColor = colors[Math.floor(mapRange(nx, -noiseAmp, noiseAmp, 0, nshades))];
+      lineWidth = Math.floor(mapRange(nx, -noiseAmp, noiseAmp, 1, 5));
+      points.push(new Point(x + nx, y, lineColor, lineWidth));
     }
     curves.push(new Curve(...points));
   }
