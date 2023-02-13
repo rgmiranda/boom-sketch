@@ -13,6 +13,7 @@
     "bars": "canvas-sketch bars.js --open --output build/bars --stream",
     "arcs": "canvas-sketch arcs.js --open --output build/arcs --stream",
     "angles": "canvas-sketch angles.js --open --output build/angles --stream",
+    "spin": "canvas-sketch spin.js --open --output build/spin --stream",
     "poster": "canvas-sketch poster.js --open --output build/poster --stream",
     "drops": "canvas-sketch drops.js --open --output build/drops --stream",
     "waves": "canvas-sketch waves.js --open --output build/waves --stream=gif",
