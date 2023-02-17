@@ -121,4 +121,13 @@ export class Vector {
   copy() {
     return new Vector(this.#x, this.#y);
   }
+
+  /**
+   * 
+   * @param { number } angle 
+   * @returns { Vector }
+   */
+  static fromAngle(angle) {
+    return new Vector(Math.cos(angle), Math.sin(angle));
+  }
 }
