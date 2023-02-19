@@ -2,9 +2,9 @@ const canvasSketch = require('canvas-sketch');
 const { mapRange } = require('canvas-sketch-util/math');
 const { Vector } = require('../calc');
 
-const cvWidth = 400;
-const cvHeight = 400;
-const particleCount = 3000;
+const cvWidth = 1080;
+const cvHeight = 1080;
+const particleCount = 5000;
 const particleSize = 1;
 const dampRatio = 0.1;
 /** @type { Particle[] } */
