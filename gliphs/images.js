@@ -1,19 +1,26 @@
 const canvasSketch = require('canvas-sketch');
-const { range, pick } = require('canvas-sketch-util/random');
+const { mapRange } = require('canvas-sketch-util/math');
+const { range, pick, rangeFloor } = require('canvas-sketch-util/random');
 const { Pane } = require('tweakpane');
+const { loadImage } = require('../images');
 
 const cvWidth = cvHeight = 1080;
+const bg = 'black';
 let sketchManager;
 
+const imageUrl = 'images/gioconda.jpg'
+
 const paneParams = {
-  rows: 48,
-  cols: 48,
-  text: 'π'
+  rows: 64,
+  cols: 64,
+  lightChars: '.,\'',
+  mediumChars: '-',
+  strongChars: '/_*+?',
 }
 const pane = new Pane();
 pane.addInput(paneParams, 'rows', {
   min: 16,
-  max: 64,
+  max: 128,
   step: 1
 }).on('change', () => { 
   if (sketchManager) {
@@ -22,14 +29,36 @@ pane.addInput(paneParams, 'rows', {
 });
 pane.addInput(paneParams, 'cols', {
   min: 16,
-  max: 64,
+  max: 128,
   step: 1
 }).on('change', () => { 
   if (sketchManager) {
     sketchManager.render();
   }
 });
-pane.addInput(paneParams, 'text').on('change', () => { 
+pane.addInput(paneParams, 'lightChars', {
+  min: 16,
+  max: 128,
+  step: 1
+}).on('change', () => { 
+  if (sketchManager) {
+    sketchManager.render();
+  }
+});
+pane.addInput(paneParams, 'mediumChars', {
+  min: 16,
+  max: 128,
+  step: 1
+}).on('change', () => { 
+  if (sketchManager) {
+    sketchManager.render();
+  }
+});
+pane.addInput(paneParams, 'strongChars', {
+  min: 16,
+  max: 128,
+  step: 1
+}).on('change', () => { 
   if (sketchManager) {
     sketchManager.render();
   }
@@ -39,44 +68,26 @@ const settings = {
   dimensions: [ cvWidth, cvHeight ]
 };
 
-const ligthChars = '.,\'"'.split('');
-const mediumChars = '-'.split('')
-const strongChars = '0123456789'.split('');
-
 /**
  * @param { number } width 
  * @param { number } height
- * @param { string } text
+ * @param { HTMLImageElement } image
  * @returns { ImageData }
  */
-function getGliphImageData(width, height, text) {
-  const fontSize = width;
-  const fontStyle = 'bold serif';
-
-  /** @type { TextMetrics } */
-  let mtext
-
-  let mx, my, mw, mh;
+function getGliphImageData(width, height, image) {
 
   /** @type { HTMLCanvasElement } */
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-
+  
   /** @type { CanvasRenderingContext2D } */
   const context = canvas.getContext('2d');
-  context.fillStyle = 'black';
+  
+  context.fillStyle = bg;
   context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
 
-  context.font = `${fontSize}px ${fontStyle}`;
-  context.fillStyle = 'white';
-
-  mtext = context.measureText(text);
-  mw = mtext.width;
-  mh = mtext.actualBoundingBoxAscent + mtext.actualBoundingBoxDescent;
-  my = (height + mh) * 0.5;
-  mx = (width - mw) * 0.5;
-  context.fillText(text, mx, my);
   return context.getImageData(0, 0, width, height);
 }
 
@@ -105,34 +116,49 @@ function getPixelData(i, imageData) {
 function getChar(r, g, b) {
   const l = (r + g + b) / 3;
   if (l < 50) {
-    return pick(ligthChars);
+    return pick(paneParams.lightChars.split(''));
   }
-  if (l < 150) {
-    return pick(mediumChars);
+  if (l < 100) {
+    return pick(paneParams.mediumChars.split(''));
   }
-  return pick(strongChars);
+  return pick(paneParams.strongChars.split(''));
 }
 
-const sketch = () => {
+/**
+ * 
+ * @param { number } r 
+ * @param { number } g 
+ * @param { number } b 
+ * @returns { number }
+ */
+function getCharSize(r, g, b) {
+  const l = (r + g + b) / 3;
+  const maxSize = mapRange(l, 0, 255, 20, 60);
+  const minSize = mapRange(l, 0, 255, 5, 10);
+  return rangeFloor(minSize, maxSize);
+}
+
+const sketch = async () => {
+  const { rows, cols } = paneParams;
+  const image = await loadImage(imageUrl);
+  const gliphData = getGliphImageData(cols, rows, image);
   return ({ context, width, height }) => {
-    const { rows, cols, text } = paneParams;
 
-    const pw = cvWidth / cols;
-    const ph = cvHeight / rows;
-
-    let x, y, charSize, r, g, b, char;
-    const gliphData = getGliphImageData(cols, rows, text);
-
-    context.fillStyle = 'black';
+    context.fillStyle = bg;
     context.fillRect(0, 0, width, height);
+
+    const pw = width / cols;
+    const ph = height / rows;
+
+    let x, y, charSize, r, g, b, a, char;
     for (let i = 0; i < rows * cols; i++) {  
       x = i % cols * pw;
       y = Math.floor(i / cols) * ph;
-      charSize = range(10, 75);
       ({r, g, b} = getPixelData(i, gliphData));
-      char = getChar(r, g, b);
+      charSize = getCharSize(r, g, b, a);
+      char = getChar(r, g, b, a);
       context.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      context.font = `${charSize}px monospace`;
+      context.font = `${charSize}px "Courier New"`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.fillText(char, x, y);
