@@ -4,9 +4,14 @@ const p5 = require('p5');
 const risoColors = require('riso-colors');
 
 const cvWidth = cvHeight = 1080;
-const numParticles = 2048;
+const rows = 64;
+const cols = 64;
+const pw = cvWidth / cols;
+const ph = cvHeight / cols;
+const numParticles = rows * cols;
 const noiseScale = 0.008;
 const seed = getRandomSeed();
+
 const particleAge = {
   min: 60,
   max: 300
@@ -19,7 +24,6 @@ setSeed(seed);
 const colors = [
   pick(risoColors).hex,
   pick(risoColors).hex,
-  pick(risoColors).hex,
 ];
 
 const settings = {
@@ -28,7 +32,7 @@ const settings = {
   // Turn on a render loop
   animate: true,
   dimensions: [cvWidth, cvHeight],
-  name: `flow-${seed}`,
+  name: seed,
 };
 
 class Particle {
@@ -69,8 +73,11 @@ let particles = [];
 let sketchManager;
 
 canvasSketch(({ width, height, p5 }) => {
+  let x, y;
   for (let i = 0; i < numParticles; i++) {
-    particles.push(new Particle(rangeFloor(0, width), rangeFloor(0, height), p5, pick(colors)));
+    x = (i % cols) * pw;
+    y = p5.floor(i / cols) * ph;
+    particles.push(new Particle(x, y, p5, pick(colors)));
   }
   p5.background(0);
   p5.strokeWeight(2);
