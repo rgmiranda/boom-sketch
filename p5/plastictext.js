@@ -2,24 +2,24 @@ const canvasSketch = require('canvas-sketch');
 const p5 = require('p5');
 const { Pane } = require('tweakpane');
 
-const cvWidth = cvHeight = 1200;
+const cvWidth = cvHeight = 1080;
+const springCoef = 0.02;
+const repelCoef = 0.05;
 const params = {
   text: 'A',
   fontSize: cvHeight,
   sampleFactor: 0.05,
   pointSize: 15,
   font: undefined,
-  springMag: 0.05,
-  friction: 0.9,
+  repelRadius: 200,
 }
 const pane = new Pane();
 pane.addInput(params, 'text');
 pane.addInput(params, 'fontSize', { min: 100, max: cvHeight * 2, step: 1 });
 pane.addInput(params, 'sampleFactor', { min: 0.001, max: 0.1, step: 0.001 });
 pane.addInput(params, 'pointSize', { min: 1, max: 200, step: 1 });
-pane.addInput(params, 'springMag', { min: 0.01, max: 0.1, step: 0.01 });
-pane.addInput(params, 'friction', { min: 0.1, max: 0.99, step: 0.01 });
-pane.on('change', (ev) => {
+pane.addInput(params, 'repelRadius', { min: 50, max: 500, step: 1 });
+pane.on('change', () => {
   const [width, height] = sketchManager.props.dimensions;
   textPointsManager.setParams({width, height, ...params});
   sketchManager.render();
@@ -42,7 +42,6 @@ const settings = {
 
 class TextPoint {
   constructor(p5, x, y) {
-    this.dragged = false;
     this.pos = p5.createVector(x, y);
     this.origin = p5.createVector(x, y);
     this.vel = p5.createVector(0, 0);
@@ -51,31 +50,8 @@ class TextPoint {
     this.radius = params.pointSize;
   }
 
-  mousePressed() {
-    const dx = this.pos.x - this.p5.mouseX;
-    const dy = this.pos.y - this.p5.mouseY;
-    if (dx * dx + dy * dy < this.radius * this.radius) {
-      this.dragged = true;
-      this.mouseDragged();
-    } else {
-      this.dragged = false;
-    }
-  }
-
-  mouseReleased() {
-    this.dragged = false;
-  }
-
-  mouseDragged() {
-    if (!this.dragged) {
-      return;
-    }
-    this.pos.x = this.p5.mouseX;
-    this.pos.y = this.p5.mouseY;
-  }
-
   draw() {
-    const f = this.p5.map(this.pos.dist(this.origin), 0, 250, 1, 0.5, true);
+    const f = this.p5.map(this.pos.dist(this.origin), 0, 250, 0.2, 2, true);
     this.p5.circle(this.pos.x, this.pos.y, this.radius * 2 * f);
   }
 
@@ -83,20 +59,26 @@ class TextPoint {
     this.acc.add(force);
   }
 
-  update() {
-
-    if (this.dragged) {
-      this.acc.mult(0);
+  repel(x, y) {
+    const dx =  this.pos.x - x;
+    const dy =  this.pos.y - y;
+    if (dx * dx + dy * dy > params.repelRadius * params.repelRadius) {
       return;
     }
+    const force = this.p5.createVector(dx, dy);
+    force.mult(repelCoef);
+    this.applyForce(force);
+  }
+
+  update() {
 
     const disp = this.origin.copy();
     disp.sub(this.pos);
-    disp.mult(params.springMag);
+    disp.mult(springCoef);
     this.applyForce(disp);
 
     this.vel.add(this.acc);
-    this.vel.mult(params.friction);
+    this.vel.mult(0.9);
     this.pos.add(this.vel);
     this.acc.mult(0);
   }
@@ -119,66 +101,25 @@ class TextPointsManager {
     const dy = (height - bounds.y) * 0.5;
     /** @type { TextPoint[] } */
     this.points = font.textToPoints(this.text, dx, dy, this.fontSize, { sampleFactor: this.sampleFactor }).map(({x, y}) => new TextPoint(this.p5, x, y));
-    this.connections = [];
-    for (let i = 0; i < this.points.length - 1; i++) {
-      this.connections.push(this.points[i].origin.dist(this.points[i + 1].origin));
-    }
-    this.connections.push(this.points[this.points.length - 1].origin.dist(this.points[0].origin));
   }
 
-  mousePressed() {
-    this.points.forEach(p => p.mousePressed());
-  }
-
-  mouseReleased() {
-    this.points.forEach(p => p.mouseReleased());
-  }
-  
-  mouseDragged() {
-    this.points.filter(p => p.dragged).forEach(p => p.mouseDragged());
-  }
-  
   draw() {
     this.points.forEach(p => p.draw());
   }
 
   update() {
-    let force, mag, i, j, k;
-    for (i = 0; i < this.points.length; i++) {
-      if ( i === 0) {
-        j = this.points.length - 1;
-      } else {
-        j = i - 1;
+    this.points.forEach(p => {
+      if ( this.p5.mouseIsPressed ) {
+        p.repel(this.p5.mouseX, this.p5.mouseY);
       }
-      if (i === this.points.length - 1) {
-        k = 0;
-      } else {
-        k = i + 1;
-      }
-      force = this.points[i].pos.copy();
-      force.sub(this.points[k].pos);
-      mag = force.mag() - this.connections[i];
-      force.normalize();
-      force.mult(mag * params.springMag);
-      this.points[k].applyForce(force);
-
-      force = this.points[i].pos.copy();
-      force.sub(this.points[j].pos);
-      mag = force.mag() - this.connections[j];
-      force.normalize();
-      force.mult(mag * params.springMag);
-      this.points[j].applyForce(force);
-    }
-    this.points.forEach(p => p.update());
+      p.update();
+    });
   }
 }
 
 canvasSketch(({ width, height, p5 }) => {
   textPointsManager = new TextPointsManager(p5);
   textPointsManager.setParams({width, height, ...params});
-  p5.mousePressed = () => textPointsManager.mousePressed();
-  p5.mouseDragged = () => textPointsManager.mouseDragged();
-  p5.mouseReleased = () => textPointsManager.mouseReleased();
 
   return ({ p5 }) => {
     p5.background(0);
