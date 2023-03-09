@@ -5,12 +5,12 @@ const { Pane } = require('tweakpane');
 
 const cvWidth = cvHeight = 1200;
 const color = [243, 243, 21];
+let font;
 const params = {
   text: 'NEON',
   fontSize: cvHeight * 0.33,
   sampleFactor: 0.5,
   lineWidth: 8,
-  font: undefined,
 }
 const pane = new Pane();
 pane.addInput(params, 'text');
@@ -27,65 +27,66 @@ let sketchManager;
 let textPointsManager;
 
 const preload = p5 => {
-  params.font = p5.loadFont('fonts/neon.ttf');
+  font = p5.loadFont('fonts/neon.ttf');
 };
 
 const settings = {
   // Pass the p5 instance, and preload function if necessary
   p5: { p5, preload },
-  dimensions: [cvWidth, cvHeight]
+  dimensions: [cvWidth, cvHeight],
+  animate: true,
 };
 
-class TextPointsManager {
-  constructor (p5) {
-    this.p5 = p5;
-  }
+let blinkAge = 0;
 
-  setParams({ width, height, text, fontSize, font, sampleFactor }) {
-    this.width = width;
-    this.height = height;
-    this.text = text;
-    this.fontSize = fontSize;
-    this.font = font;
-    this.sampleFactor = sampleFactor;
-    
-    const textBounds = font.textBounds(this.text, 0, 0, this.fontSize);
+canvasSketch(() => {
+  return ({ p5, width, height }) => {
+    const textBounds = font.textBounds(params.text, 0, 0, params.fontSize);
+    if (blinkAge === 0) {
+      if (p5.random() < 0.02) {
+        blinkAge = p5.floor(p5.random() * 10) + 5;
+      }
+    } else {
+      blinkAge--;
+    }
+
     let dx = (width - textBounds.w - textBounds.x) * 0.5;
     let dy = (height - textBounds.y) * 0.5;
+
+    const chars = params.text.split('');
     let charBounds;
-    const chars = text.split('');
-    this.charsPoints = [];
-    chars.forEach(c => {
-      charBounds = font.textBounds(c, 0, 0, this.fontSize);
-      this.charsPoints.push(font.textToPoints(c, dx, dy, this.fontSize, { sampleFactor: this.sampleFactor }));
-      dx += charBounds.w;
-    });
-  }
-  
-  draw() {
+
     /** @type { CanvasRenderingContext2D } */
-    const ctx = this.p5.drawingContext;
+    const ctx = p5.drawingContext;
     const [r, g, b] = color;
-    this.p5.strokeWeight(params.lineWidth);
-    this.p5.stroke(this.p5.color(r, g, b, 51));
-    this.p5.fill(255);
-    ctx.shadowColor = parse(color).hex;
-    ctx.shadowBlur = 100;
-    this.charsPoints.forEach(points => {
-      this.p5.beginShape();
-      points.forEach(p => this.p5.vertex(p.x, p.y));
-      this.p5.endShape(p5.CLOSE);
-    });
-    
-  }
-}
 
-canvasSketch(({ width, height, p5 }) => {
-  textPointsManager = new TextPointsManager(p5);
-  textPointsManager.setParams({width, height, ...params});
-
-  return ({ p5 }) => {
     p5.background(0);
-    textPointsManager.draw();
+    p5.strokeWeight(params.lineWidth);
+    p5.textFont(font);
+    p5.textSize(params.fontSize);
+
+
+    chars.forEach((char, idx) => {
+      charBounds = font.textBounds(char, 0, 0, params.fontSize);
+      if (blinkAge > 0 && idx === 0) {
+        p5.stroke(33);
+        p5.fill(51);
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = undefined;
+        p5.text(char, dx, dy);
+        dx += charBounds.w;
+        return;
+      }
+      p5.stroke(p5.color(r, g, b, 51));
+      p5.fill(255);
+      ctx.shadowColor = parse(color).hex;
+      ctx.shadowBlur = 100;
+      p5.text(char, dx, dy);
+      ctx.shadowBlur = 200;
+      p5.text(char, dx, dy);
+      ctx.shadowBlur = 300;
+      p5.text(char, dx, dy);
+      dx += charBounds.w;
+    })
   };
 }, settings).then(manager => sketchManager = manager);
