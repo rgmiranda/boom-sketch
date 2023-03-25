@@ -2,12 +2,12 @@ const canvasSketch = require('canvas-sketch');
 const { Vector } = require('../calc');
 const random = require('canvas-sketch-util/random');
 const createColormap = require('colormap');
-const { clamp } = require('canvas-sketch-util/math');
+const { clamp, mapRange } = require('canvas-sketch-util/math');
 
 const seed = random.getRandomSeed();
 random.setSeed(seed);
 let sketchManager;
-const snowflakeSides = 6;
+const snowflakeSides = 24;
 const snowflakeVertex = 32;
 
 const settings = {
@@ -17,7 +17,7 @@ const settings = {
 };
 
 const colors = createColormap({
-  colormap: 'winter',
+  colormap: 'hsv',
   nshades : snowflakeVertex,
   alpha: 1,
   format: 'hex'
@@ -27,17 +27,14 @@ class Walker {
   constructor(x, y, vertex) {
     this.pos = new Vector(x, y);
     this.vertexNum = vertex;
-    this.distanceRatio = 0.9;
     this.currVertex = 0;
+    this.distanceRatio = 0.9;
     this.active = true;
-    this.resetDest();
   }
   
   getDirection(){
-    if (this.currVertex === 0) {
-      return Math.PI * 0.5;
-    }
-    return random.range(-Math.PI, Math.PI);
+    const k = mapRange(this.currVertex, 0, this.vertexNum, 0.75, 1)
+    return random.range(-k * Math.PI, k * Math.PI);
   }
 
   getDistance() {
@@ -47,7 +44,7 @@ class Walker {
     }
 
     this.distance *= this.distanceRatio;
-    //this.distance = clamp(20, 200);
+    this.distance = clamp(50, 200);
     return this.distance;
   }
 
@@ -55,23 +52,16 @@ class Walker {
     return random.range(3, 5);
   }
 
-  resetDest() {
-
+  move() {
     if (!this.active) {
       return;
     }
-    
-    this.dest = this.pos.copy();
+
+    this.prev = {x: this.pos.x, y: this.pos.y};
     const distance = this.getDistance();
-    this.dir = Vector.fromAngle(this.getDirection());
-    this.dir.mult(distance);
-    this.dest.add(this.dir);
-    this.speed = this.getSpeed();
-    this.steps = Math.ceil(distance / this.speed);
-    this.currStep = 0;
-    this.dir.normalize();
-    this.dir.mult(this.speed);
-    this.prev = undefined;
+    const dir = Vector.fromAngle(this.getDirection());
+    dir.mult(distance);
+    this.pos.add(dir);
 
     this.currVertex++;
     if (this.currVertex >= this.vertexNum) {
@@ -79,24 +69,16 @@ class Walker {
     }
   }
 
-  move() {
-    if (!this.active) {
-      return;
-    }
-    if (this.currStep >= this.steps) {
-      this.resetDest();
-    }
-    this.prev = { x: this.pos.x, y: this.pos.y };
-    this.pos.add(this.dir);
-    this.currStep++;
-  }
-
   /**
    * 
    * @param { CanvasRenderingContext2D } context 
    */
   draw(context) {
+    if (!this.active) {
+      return;
+    }
     context.strokeStyle = colors[this.currVertex - 1];
+    context.lineWidth = 4;
     context.beginPath();
     context.moveTo(this.pos.x, this.pos.y);
     context.lineTo(this.prev.x, this.prev.y);
