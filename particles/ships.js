@@ -38,9 +38,9 @@ class Ship {
     let y;
     if (chance(0.5)) {
       x = 0;
-      y = rangeFloor(0, this.height);
+      y = rangeFloor(this.height * 0.6, this.height);
     } else {
-      x = rangeFloor(0, this.width);
+      x = rangeFloor(0, this.width * 0.4);
       y = this.height;
     }
     this.pos = new Vector(x, y);
@@ -55,9 +55,9 @@ class Ship {
   }
 
   move() {
-    const flow = this.flowfield.getFlow(this.pos.x, this.pos.y).copy();
-    flow.mult(this.speed);
-    this.pos.add(flow);
+    this.flow = this.flowfield.getFlow(this.pos.x, this.pos.y).copy();
+    this.flow.mult(this.speed);
+    this.pos.add(this.flow);
 
     if (!this.checkBoundaries()) {
       this.spawn();
@@ -70,8 +70,15 @@ class Ship {
    */
   draw(ctx) {
     ctx.save();
+    ctx.translate(this.pos.x, this.pos.y);
+    if (this.flow) {
+      ctx.rotate(this.flow.angle);
+    }
     ctx.beginPath();
-    ctx.arc(this.pos.x, this.pos.y, 5, 0, Math.PI * 2);
+    ctx.moveTo(0, -20);
+    ctx.lineTo(8, 10);
+    ctx.lineTo(-8, 10);
+    ctx.closePath();
     ctx.fillStyle = 'white'
     ctx.fill();
     ctx.restore();

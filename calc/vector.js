@@ -128,6 +128,8 @@ export class Vector {
    * @returns { Vector }
    */
   static fromAngle(angle) {
-    return new Vector(Math.cos(angle), Math.sin(angle));
+    const instance = new Vector(Math.cos(angle), Math.sin(angle));
+    instance.#angle = angle;
+    return instance;
   }
 }

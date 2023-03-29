@@ -50,7 +50,7 @@ export class FlowField {
     for (let i = 0; i < this.field.length; i++) {
       flow = this.field[i];
       context.save();
-      context.strokeStyle = 'black';
+      context.strokeStyle = 'white';
       x = (i % this.cols) * this.rectWidth;
       y = Math.floor(i / this.cols) * this.rectHeigth;
       context.translate(x + this.rectWidth * 0.5, y + this.rectHeigth * 0.5);
