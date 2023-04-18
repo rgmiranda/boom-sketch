@@ -4,7 +4,7 @@ const { Pane } = require('tweakpane');
 
 const cvWidth = cvHeight = 1200;
 const params = {
-  text: 'A',
+  text: 'F',
   fontSize: cvHeight,
   sampleFactor: 0.05,
   pointSize: 15,
