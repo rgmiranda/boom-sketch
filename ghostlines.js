@@ -105,7 +105,7 @@ const sketch = ({width, height, context}) => {
   segments.push(new Segment(from, to));
   addEventListeners();
   return ({ context, width, height }) => {
-    context.globalAlpha = 0.1;
+    context.globalAlpha = 0.25;
     for (const s of segments) {
       s.update();
       s.draw(context);
