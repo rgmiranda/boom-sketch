@@ -11,13 +11,13 @@ const settings = {
 const maxRadius = 200;
 const minRadius = 50;
 const circlePadding = 5;
-const levels = 12;
-const colors = createColormap({
+const layers = 2;
+/*const colors = createColormap({
   colormap: 'bone',
   alpha: 1,
-  nshades: levels,
+  nshades: layers,
   format: 'hex'
-});
+});*/
 const numCircles = 16;
 
 /**
@@ -33,35 +33,56 @@ function getMaxRadius(x, y, circles) {
   }
   let max = circles.reduce((acc, c) => { 
     let d = Math.sqrt((c.x - x) * (c.x - x) + (c.y - y) * (c.y - y));
-    console.log('ACC', acc, d);
     return Math.min(acc, d - c.r - circlePadding);
    }, maxRadius);
-   console.log('MAX', max);
   return max;
+}
+
+/**
+ * 
+ * @param { string } color 
+ * @param { number } width 
+ * @param { number } height 
+ * @returns { ImageData }
+ */
+function drawLayer(color, width, height) {
+  /** @type { HTMLCanvasElement } */
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  /** @type { CanvasRenderingContext2D } */
+  const context = canvas.getContext('2d');
+
+  context.fillStyle = color;
+  context.fillRect(0, 0, width, height);
+
+  const circles = [];
+  let x, y, r;
+  for (let i = 0; i < numCircles; i++) {
+    do {
+      x = random.rangeFloor(0, width);
+      y = random.rangeFloor(0, height);
+      r = getMaxRadius(x, y, circles);
+    } while (r < 0);
+    circles.push({ x, y, r });
+  }
+  context.globalCompositeOperation = 'destination-out';
+  context.fillStyle = '#FFFFFF00';
+  circles.forEach(c => {
+    context.beginPath();
+    context.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    context.fill();
+  });
+  return context.getImageData(0, 0, width, height);
 }
 
 const sketch = () => {
   return ({ context, width, height }) => {
-    const circles = [];
-    let x, y, r;
-    for (let i = 0; i < numCircles; i++) {
-      do {
-        x =  random.rangeFloor(0, width);
-        y = random.rangeFloor(0, height);
-        r = getMaxRadius(x, y, circles);
-      } while (r < 0);
-      console.log('RAD', r);
-      circles.push({ x, y, r});
-    }
-    context.fillStyle = 'white';
-    context.fillRect(0, 0, width, height);
     context.fillStyle = 'black';
-    circles.forEach(c => {
-      context.beginPath();
-      context.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-      context.fill();
-    });
-
+    context.fillRect(0, 0, width, height);
+    const layerData = drawLayer('blue', width, height);
+    context.putImageData(layerData, 0, 0);
   };
 };
 
