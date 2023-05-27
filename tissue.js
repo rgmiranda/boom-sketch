@@ -10,8 +10,8 @@ const settings = {
 };
 const maxRadius = 200;
 const minRadius = 50;
-const circlePadding = 5;
-const layers = 2;
+const circlePadding = 10;
+const layers = 5;
 /*const colors = createColormap({
   colormap: 'bone',
   alpha: 1,
@@ -43,7 +43,7 @@ function getMaxRadius(x, y, circles) {
  * @param { string } color 
  * @param { number } width 
  * @param { number } height 
- * @returns { ImageData }
+ * @returns { HTMLCanvasElement }
  */
 function drawLayer(color, width, height) {
   /** @type { HTMLCanvasElement } */
@@ -64,25 +64,35 @@ function drawLayer(color, width, height) {
       x = random.rangeFloor(0, width);
       y = random.rangeFloor(0, height);
       r = getMaxRadius(x, y, circles);
-    } while (r < 0);
+    } while (r < minRadius);
     circles.push({ x, y, r });
   }
   context.globalCompositeOperation = 'destination-out';
-  context.fillStyle = '#FFFFFF00';
   circles.forEach(c => {
     context.beginPath();
     context.arc(c.x, c.y, c.r, 0, Math.PI * 2);
     context.fill();
   });
-  return context.getImageData(0, 0, width, height);
+  return canvas;
 }
 
 const sketch = () => {
   return ({ context, width, height }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
-    const layerData = drawLayer('blue', width, height);
-    context.putImageData(layerData, 0, 0);
+    let layerImage;
+    for (let i = 0; i < layers; i++) {
+      context.fillStyle = 'black';
+      context.globalAlpha = 0.2;
+      context.fillRect(0, 0, width, height);
+      layerImage = drawLayer('white', width, height);
+      context.globalAlpha = 1;
+      context.shadowOffsetX = 5;
+      context.shadowOffsetY = 5;
+      context.shadowColor = 'black';
+      context.shadowBlur = 10;
+      context.drawImage(layerImage, 0, 0);
+    }
   };
 };
 
