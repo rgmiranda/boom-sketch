@@ -9,9 +9,10 @@ const colors = createColormap({
   alpha: 1,
   format: 'hex'
 });
-const cols = 8;
+const cols = 4;
 const settings = {
-  dimensions: [ 1080, 1080 ]
+  dimensions: [ 1080, 1080 ],
+  name: `semicircles-${Date.now()}`
 };
 
 const sketch = () => {
