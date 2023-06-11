@@ -2,15 +2,16 @@ const canvasSketch = require('canvas-sketch');
 const createColormap = require('colormap');
 
 const settings = {
-  dimensions: [ 1080, 1080 ]
+  dimensions: [ 1080, 1080 ],
+  name: 'string-star'
 };
 
-const outerPointsCount = 256;
-const innerPointsCount = 256;
-const linesCount = 256;
+const outerPointsCount = 512;
+const innerPointsCount = Math.floor(outerPointsCount * 0.125);
+const linesCount = 512;
 const outerPointInit = linesCount * 0.75;
 const innerPointInit = 0;
-const innerRadius = 100;
+const innerRadius = 150;
 const outerRadius = 480;
 
 const colors = createColormap({
@@ -45,6 +46,10 @@ const sketch = () => {
       oi = (oi + 1) % outerPointsCount;
       ii = (ii + 1) % innerPointsCount;
     }
+    context.beginPath();
+    context.arc(0, 0, innerRadius, 0, Math.PI * 2);
+    context.fillStyle = 'black';
+    context.fill();
   };
 };
 
