@@ -1,13 +1,13 @@
 const canvasSketch = require('canvas-sketch');
 const createColormap = require('colormap');
 
-const numCircles = 64 + 32;
+const numCircles = 64;
 const colors = createColormap({
-  colormap: 'cool',
+  colormap: 'plasma',
   nshades: numCircles,
 });
 const outerRadius = 480;
-const innerRadius = 20;
+const innerRadius = -100;
 const radius = (outerRadius - innerRadius) * 0.5;
 const angle = 2 * Math.PI / numCircles;
 const settings = {
