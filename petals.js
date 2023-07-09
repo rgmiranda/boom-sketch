@@ -15,6 +15,7 @@ const colors = [
   '#ffb627',
   '#ffc971',
   '#ffea00',
+  '#ffff00',
 ];
 
 const numPetals = 180;
