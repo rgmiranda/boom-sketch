@@ -1,11 +1,12 @@
 const canvasSketch = require('canvas-sketch');
 
 const settings = {
-  dimensions: [ 1080, 1080 ]
+  dimensions: [ 1080, 1080 ],
+  name: 'knitting'
 };
 
-const numLines = 12;
-const turns = 8;
+const numLines = 4;
+const turns = 31;
 
 const sketch = () => {
   return ({ context, width, height }) => {
@@ -28,38 +29,64 @@ const sketch = () => {
         for(let k = 0; k < numLines; k++) {
           const r = 2 * (k + 0.5) * lineWidth;
 
-          if ( j === 0 || j === turns) {
-            if ( i % 2 === 0 ) {
+          if (j === 0)
+          {
+            if (i === turns) {
+              continue;
+            }
+            if (i % 2 === 0)
+            {
               context.beginPath();
               context.arc(x, trackWidth, r, Math.PI * 1.5, Math.PI * 2);
               context.stroke();
-              context.beginPath();
-              context.arc(x + trackWidth, height - trackWidth, r, Math.PI * 0.5, Math.PI);
-              context.stroke();
-            } else {
+            } else
+            {
               context.beginPath();
               context.arc(x + trackWidth, trackWidth, r, Math.PI, Math.PI * 1.5);
               context.stroke();
+            }
+            continue;
+          } else if (j === turns)
+          {
+            if (i === turns) {
               context.beginPath();
-              context.arc(x, height - trackWidth, r, 0, Math.PI * 0.5);
+              context.arc(x, y + trackWidth, r, Math.PI * 1.5, Math.PI * 2);
+              context.stroke();
+              continue;
+            }
+            if (i % 2 === 0)
+            {
+              context.beginPath();
+              context.arc(x + trackWidth, height - trackWidth, r, Math.PI * 0.5, Math.PI);
+              context.stroke();
+            } else
+            {
+              context.beginPath();
+              context.arc(x, y, r, 0, Math.PI * 0.5);
               context.stroke();
             }
             continue;
           }
-          if ( i === 0 || i === turns) {
-            if ( j % 2 === 0 ) {
-              context.beginPath();
-              context.arc(trackWidth, y, r, Math.PI * 1.5, Math.PI * 2);
-              context.stroke();
-              context.beginPath();
-              context.arc(width - trackWidth, y + trackWidth, r, Math.PI * 0.5, Math.PI);
-              context.stroke(); 
-            } else {
+
+          if ( i === 0) {
+            if (j % 2 === 0) {
               context.beginPath();
               context.arc(trackWidth, y + trackWidth, r, Math.PI, Math.PI * 1.5);
               context.stroke();
+            } else {
               context.beginPath();
-              context.arc(width - trackWidth, y, r, 0, Math.PI * 0.5);
+              context.arc(trackWidth, y, r, Math.PI * 0.5, Math.PI * 1);
+              context.stroke();
+            }
+            continue;
+          } else if (i === turns) {
+            if (j % 2 === 0) {
+              context.beginPath();
+              context.arc(x, y, r, 0, Math.PI * 0.5);
+              context.stroke();
+            } else {
+              context.beginPath();
+              context.arc(x, y + trackWidth, r, Math.PI * 1.5, Math.PI * 2);
               context.stroke();
             }
             continue;
@@ -76,6 +103,7 @@ const sketch = () => {
             context.lineTo(x + trackWidth, y + r);
             context.stroke();
           }
+
         }
       }
 
