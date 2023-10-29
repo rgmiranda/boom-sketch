@@ -116,6 +116,16 @@ export class Vector {
   }
 
   /**
+   * 
+   * @param { Vector } vector 
+   * @returns { number }
+   */
+  angleTo(vector) {
+    const cp = this.#x * vector.x + this.#y * vector.y;
+    return Math.acos(cp / (this.mag * vector.mag));
+  }
+
+  /**
    * @returns { Vector }
    */
   copy() {
