@@ -1,50 +1,52 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
-const createColormap = require('colormap');
-const c = 0.00, gravity = 0.2;
-const numPendullums = 12;
-const minRadius = 100;
-const maxRadius = 500;
-const pendullumWidth = (maxRadius - minRadius) / numPendullums;
+
+const pendullumConfig = {
+  padding: Math.PI / 6,
+  amplitude: Math.PI * 0.2,
+  speed: 0.035,
+};
 
 class Pendullum {
 
-  constructor(angle, radius, color, lineWidth) {
+  constructor({ offset, radius, color, size, amplitude, speed }) {
     this.radius = radius;
-    this.angle = angle;
-    this.angularVelocity = 0;
-    this.angularAcceleration = 0;
+    this.offset = offset;
+    this.speed = speed;
     this.color = color;
-    this.lineWidth = lineWidth;
-  }
-
-  drag() {
-    const drag = (-this.angularVelocity) * Math.abs(this.angularVelocity) * c;
-    this.angularAcceleration += drag;
+    this.size = size;
+    this.amplitude = amplitude;
+    this.x = 0;
+    this.y = 0;
   }
 
   update() {
-    this.angularAcceleration = -Math.sin(this.angle) * gravity / this.radius;
-    this.drag();
-    this.angularVelocity += this.angularAcceleration;
-    this.angle += this.angularVelocity;
-    this.angularAcceleration = 0;
+    const angle = Math.PI * 0.5 + Math.sin(this.offset) * this.amplitude;
+    this.x = Math.cos(angle) * this.radius;
+    this.y = Math.sin(angle) * this.radius;
+    this.offset += this.speed;
   }
 
   /**
    * 
    * @param { CanvasRenderingContext2D } context 
    */
-  draw(context, cvWidth, cvHeight) {
+  draw(context) {
     context.save();
-    context.translate(cvWidth * 0.5, cvHeight * 0.5);
-    context.rotate(Math.PI * 0.5 + this.angle);
+
+    context.strokeStyle = 'white';
+    context.lineWidth = 5;
+
     context.beginPath();
-    context.arc(0, 0, this.radius, -Math.PI * 0.25, Math.PI * 0.25);
-    context.lineWidth = this.lineWidth;
-    context.lineCap = 'round'
-    context.strokeStyle = this.color;
+    context.moveTo(0, 0);
+    context.lineTo(this.x, this.y);
     context.stroke();
+
+    context.beginPath();
+    context.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    context.fillStyle = this.color;
+    context.fill();
+
     context.restore();
   }
 }
@@ -55,20 +57,35 @@ const settings = {
   name: `pendullums`
 };
 
-const colors = createColormap({
-  colormap: 'rainbow',
-  nshades: numPendullums,
-})
+const colors = [
+  '#e81416',
+  '#ffa500',
+  '#faeb36',
+  '#79c314',
+  '#487de7',
+  '#4b369d',
+  '#70369d',
+].reverse();
 
-const sketch = () => {
-  const pendullums = Array(numPendullums).fill(0).map((e, i) => new Pendullum(random.range(-Math.PI * 0.125, Math.PI * 0.125) + Math.PI, (i + 1) * pendullumWidth, colors[i], pendullumWidth));
+const sketch = ({ width }) => {
+  const pendullums = colors.map((c, i) => new Pendullum({
+    offset: i * pendullumConfig.padding,
+    radius: width * 0.66,
+    color: c,
+    size: 75,
+    amplitude: pendullumConfig.amplitude,
+    speed: pendullumConfig.speed
+  }));
   return ({ context, width, height }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
-    pendullums.forEach(p => {
+    context.translate(width * 0.5, 0);
+
+    pendullums.forEach((p, i) => {
+      context.filter = `blur(${ ( pendullums.length - i - 1 )}px)`;
       p.update();
-      p.draw(context, width, height);
+      p.draw(context);
     });
 
   };
