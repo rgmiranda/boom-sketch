@@ -39,7 +39,7 @@ export class Vector {
   get angle() {
     if (this.#angle === undefined) {
       if (this.mag > 0) {
-        this.#angle = Math.abs(Math.asin(this.#x / this.#mag));
+        this.#angle = Math.acos(this.#x / this.#mag);
       } else {
         this.#angle = 0;
       }
