@@ -132,6 +132,13 @@ export class Vector {
     return new Vector(this.#x, this.#y);
   }
 
+  transpose() {
+    const aux = this.#y;
+    this.#y = this.#x;
+    this.#x = aux;
+    this.#resetValues();
+  }
+
   /**
    * 
    * @param { number } angle 
