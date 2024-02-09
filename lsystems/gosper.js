@@ -5,56 +5,58 @@ const { Turtle } = require('./turtle');
 
 const settings = {
     dimensions: [1080, 1080],
-    name: 'pythagoras'
+    name: 'gosper',
 };
-const turtleStep = 180;
+const turtleStep = 900;
 
 const sketch = () => {
-    const a = Math.PI * 0.25;
+    const a = Math.PI / 3;
+    const sqrt7 = Math.sqrt(7);
     let scale = 1;
     const genRules = {
-        'F': 'F[D+FU][D-FU]',
+        'F': 'DF+G++G-F--FF-G+U',
+        'G': 'D-F+GG++G+F--F-GU',
     };
     const renderRules = {
         'F': (ctx) => {
             ctx.beginPath();
-            ctx.strokeStyle = 'white'
-            ctx.rect(-turtleStep * 0.5 * scale, -turtleStep * scale, turtleStep * scale, turtleStep * scale);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(turtleStep * scale, 0);
             ctx.stroke();
-            ctx.translate(0, -turtleStep * scale);
+            ctx.translate(turtleStep * scale, 0);
+        },
+        'G': (ctx) => {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(turtleStep * scale, 0);
+            ctx.stroke();
+            ctx.translate(turtleStep * scale, 0);
         },
         'D': (ctx) => {
-            scale *= Math.SQRT1_2;
+            scale /= sqrt7;
         },
         'U': (ctx) => {
-            scale *= 2 / Math.SQRT2;
+            scale *= sqrt7;
         },
         '+': (ctx) => {
             ctx.rotate(a);
-            ctx.translate(0, -turtleStep * 0.5 * scale);
         },
         '-': (ctx) => {
             ctx.rotate(-a);
-            ctx.translate(0, -turtleStep * 0.5 * scale);
-        },
-        '[': (ctx) => {
-            ctx.save();
-        },
-        ']': (ctx) => {
-            ctx.restore();
         },
     }
-    const alphabet = new Alphabet('FDU+-[]', genRules, renderRules);
+    const alphabet = new Alphabet('FGDU+-', genRules, renderRules);
     const lsystem = new LSystem('F', alphabet);
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         lsystem.generate();
     }
     return ({ context, width, height }) => {
-        context.lineWidth = 3;
-        const turtle = new Turtle(context, width, height, alphabet);
+        context.lineWidth = 2;
+        context.strokeStyle = 'white';
         context.fillStyle = 'black';
         context.fillRect(0, 0, width, height);
-        context.translate(width * 0.5, height);
+        const turtle = new Turtle(context, width, height, alphabet);
+        context.translate(width * 0.78, height * 0.1);
         turtle.render(lsystem.sentence);
     };
 };

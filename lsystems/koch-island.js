@@ -5,7 +5,7 @@ const { Turtle } = require('./turtle');
 
 const settings = {
     dimensions: [1080, 1080],
-    name: 'lsystemkochisland'
+    name: 'koch-island'
 };
 const turtleStep = 600;
 
@@ -35,6 +35,9 @@ const sketch = () => {
     }
     const alphabet = new Alphabet('FGH+-', genRules, renderRules);
     const lsystem = new LSystem('F-F-F-F', alphabet);
+    for (let i = 0; i < 4; i++) {
+        lsystem.generate();
+    }
     return ({ context, width, height }) => {
         context.fillRect(0, 0, width, height);
         context.fillStyle = 'black';
@@ -42,9 +45,6 @@ const sketch = () => {
         context.strokeStyle = 'white';
         context.lineWidth = 1;
         const turtle = new Turtle(context, width, height, alphabet);
-        for (let i = 0; i < 4; i++) {
-            lsystem.generate();
-        }
 
         context .beginPath();
         turtle.render(lsystem.sentence);

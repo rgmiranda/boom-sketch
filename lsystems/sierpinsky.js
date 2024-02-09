@@ -46,6 +46,9 @@ const sketch = () => {
     }
     const alphabet = new Alphabet('FGDU+-', genRules, renderRules);
     const lsystem = new LSystem('F', alphabet);
+    for (let i = 0; i < 8; i++) {
+        lsystem.generate();
+    }
     return ({ context, width, height }) => {
         context.lineWidth = 2;
         context.strokeStyle = 'white';
@@ -53,9 +56,6 @@ const sketch = () => {
         context.fillRect(0, 0, width, height);
         const turtle = new Turtle(context, width, height, alphabet);
         context.translate((width - turtleStep) * 0.5, height * 0.5 + turtleStep * Math.sqrt(3) * 0.25);
-        for (let i = 0; i < 8; i++) {
-            lsystem.generate();
-        }
         turtle.render(lsystem.sentence);
     };
 };
