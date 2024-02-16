@@ -1,10 +1,10 @@
 const canvasSketch = require('canvas-sketch');
-const { Vector } = require('./calc');
 
 const settings = {
-  dimensions: [ 1080, 1080 ]
+  dimensions: [ 1080, 1080 ],
+  animate: true,
 };
-const pixelSize = 50;
+const pixelSize = 20;
 
 class Ball {
 
@@ -21,6 +21,16 @@ class Ball {
   /**
    * @type { number }
    */
+  #vx;
+
+  /**
+   * @type { number }
+   */
+  #vy;
+
+  /**
+   * @type { number }
+   */
   #size
 
   /**
@@ -31,6 +41,8 @@ class Ball {
   constructor (x, y) {
     this.#x = x;
     this.#y = y;
+    this.#vx = Math.random() * 6 - 3;
+    this.#vy = Math.random() * 6 - 3;
     this.#size = Math.random() * 100 + 100;
   }
 
@@ -44,6 +56,17 @@ class Ball {
     ctx.closePath();
     ctx.strokeStyle = 'black';
     ctx.stroke();
+  }
+
+  update(width, height) {
+    if (this.#x < 0 || this.#x > width) {
+      this.#vx *= -1;
+    }
+    if (this.#y < 0 || this.#y > height) {
+      this.#vy *= -1;
+    }
+    this.#x += this.#vx;
+    this.#y += this.#vy;
   }
 
   get x() {
@@ -61,15 +84,7 @@ class Ball {
 
 class Grid {
 
-  /**
-   * @type { number }
-   */
-  #width;
   
-  /**
-   * @type { number }
-   */
-  #height;
 
   /**
    * @type { number }
@@ -98,8 +113,6 @@ class Grid {
    * @param { number } pixelSize 
    */
   constructor (width, height, pixelSize) {
-    this.#width = width;
-    this.#height = height;
     this.#pixelSize = pixelSize;
     this.#cols = Math.ceil(width / pixelSize);
     this.#rows = Math.ceil(height / pixelSize);
@@ -134,135 +147,132 @@ class Grid {
       const iy = Math.floor(i / this.#cols);
       const px = ix * this.#pixelSize;
       const py = iy * this.#pixelSize;
-      if ( ix < this.#cols - 1 && iy < this.#rows -1 ) {
-        const pixelsPoints = [
-          arr[iy * this.#cols + ix],
-          arr[iy * this.#cols + ix + 1],
-          arr[(iy + 1) * this.#cols + ix + 1],
-          arr[(iy + 1) * this.#cols + ix],
-        ];
-        const conf = pixelsPoints.reduce((acc, curr, j) =>
-          acc + ((curr >= 1) ? (2 ** (pixelsPoints.length - 1 - j)) : 0), 0
-        );
-        const midPoints = pixelsPoints.map((v, j) => {
-          const k = (j + 1) % pixelsPoints.length;
-          const r = (1 - v) / (pixelsPoints[k] - v);
-          console.log(r);
-          return this.#pixelSize * r;
-        });
-
-        switch (conf) {
-          case 0:
-            break;
-          case 1:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 2:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-            break;
-          case 3:
-            ctx.beginPath();
-            ctx.moveTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 4:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-            break;
-          case 5:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 6:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.stroke();
-            break;
-          case 7:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 8:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 9:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.stroke();
-            break;
-          case 10:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-            break;
-          case 11:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[0], py);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-            break;
-          case 12:
-            ctx.beginPath();
-            ctx.moveTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 13:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
-            ctx.stroke();
-            break;
-          case 14:
-            ctx.beginPath();
-            ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
-            ctx.lineTo(px, py + midPoints[3]);
-            ctx.stroke();
-            break;
-          case 15:
-            break;
-        
-          default:
-            break;
-        }
+      if ( ix >= this.#cols - 1 || iy >= this.#rows -1 ) {
+        return;
       }
-/*
-      ctx.beginPath();
-      ctx.arc(px, py, 5   , 0, Math.PI * 2);
-      ctx.fillStyle = v >= 1 ? 'red' : 'black';
-      ctx.fill();
+      const pixelsPoints = [
+        arr[iy * this.#cols + ix],
+        arr[iy * this.#cols + ix + 1],
+        arr[(iy + 1) * this.#cols + ix + 1],
+        arr[(iy + 1) * this.#cols + ix],
+      ];
+      const conf = pixelsPoints.reduce((acc, curr, j) =>
+        acc + ((curr >= 1) ? (2 ** (pixelsPoints.length - 1 - j)) : 0), 0
+      );
+      const midPoints = pixelsPoints.map((v, j) => {
+        const k = (j + 1) % pixelsPoints.length;
+        let r;
+        if ( j >= pixelsPoints.length * 0.5) {
+          r = (1 - pixelsPoints[k]) / (v - pixelsPoints[k]);
+        } else {
+          r = (1 - v) / (pixelsPoints[k] - v);
+        }
+        return this.#pixelSize * r;
+      });
 
-      ctx.font = '10px sans-serif';
-      ctx.strokeText(Math.round(v * 100) / 100, px - 10, py - 10);*/
+      switch (conf) {
+        case 0:
+          break;
+        case 1:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 2:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+          break;
+        case 3:
+          ctx.beginPath();
+          ctx.moveTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 4:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+          break;
+        case 5:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 6:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.stroke();
+          break;
+        case 7:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 8:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 9:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.stroke();
+          break;
+        case 10:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+          break;
+        case 11:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[0], py);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+          break;
+        case 12:
+          ctx.beginPath();
+          ctx.moveTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 13:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px + this.#pixelSize, py + midPoints[1]);
+          ctx.stroke();
+          break;
+        case 14:
+          ctx.beginPath();
+          ctx.moveTo(px + midPoints[2], py + this.#pixelSize);
+          ctx.lineTo(px, py + midPoints[3]);
+          ctx.stroke();
+          break;
+        case 15:
+          break;
+      
+        default:
+          break;
+      }
     });
   }
 }
@@ -273,8 +283,7 @@ const sketch = ({ width, height }) => {
   return ({ context, width, height }) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
-
-    balls.forEach(b => b.draw(context));
+    balls.forEach(b => b.update(width, height));
     grid.update(balls);
     grid.draw(context);
   };
