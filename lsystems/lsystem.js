@@ -25,11 +25,11 @@ export class LSystem {
   /**
    * 
    * @param { string } axiom 
-   * @param { Rule[] } rules
+   * @param { string[] } rules
    */
   constructor (axiom, rules) {
     this.#axiom = axiom;
-    this.#rules = rules;
+    this.#rules = rules.map(rule => new Rule(rule));
     this.init();
   }
 
@@ -68,5 +68,33 @@ export class LSystem {
    */
   get generation() {
     return this.#generation;
+  }
+
+  /**
+   * @param { string } val
+   */
+  set axiom(val) {
+    return this.#axiom = val;
+  }
+
+  /**
+   * @returns { string }
+   */
+  get axiom() {
+    return this.#axiom;
+  }
+
+  /**
+   * @param { string } val
+   */
+  set axiom(val) {
+    return this.#axiom = val;
+  }
+
+  /**
+   * @returns { string }
+   */
+  get axiom() {
+    return this.#axiom;
   }
 }

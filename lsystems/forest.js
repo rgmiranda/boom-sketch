@@ -1,7 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const { Turtle } = require('./turtle');
 const { random, math, color } = require('canvas-sketch-util');
-const { trees } = require('./trees');
 const { LSystem } = require('./lsystem');
 const createColormap = require('colormap');
 
@@ -18,7 +17,9 @@ const colors = createColormap({
 const sketch = ({ context, height }) => {
 
   const turtle = new Turtle(context, 0, 0, 0);
-  const treeSystem = random.pick(trees);
+  const treeSystem = new LSystem('F', [
+    'F => FD[++F-F+F][-F-FF]U'
+  ]);
   treeSystem.generate(4);
 
   const ground = height * 0.9;

@@ -11,12 +11,15 @@ export class Rule {
 
     /**
      * 
-     * @param { string } char 
-     * @param { string } next 
+     * @param { string } rule
      */
-    constructor(char, next) {
-        this.#char = char;
-        this.#next = next;
+    constructor(rule) {
+      const matches = rule.replaceAll(' ', '').match(/^([FGMLDU\[\]\-+])(-|=)>([FGMLDU\[\]\-+]+)$/);
+      if (!matches) {
+        throw new Error('Unrecognized rule pattern');
+      }
+      this.#char = matches[1];
+      this.#next = matches[3];
     }
 
     get char() {
