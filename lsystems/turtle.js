@@ -65,6 +65,17 @@ export class Turtle {
           this.#ctx.translate(this.#strokeSize * this.#currentScale, 0);
           break;
 
+        case 'L':
+          this.#ctx.beginPath();
+          this.#ctx.moveTo(0, 0);
+          this.#ctx.lineCap = 'round';
+          this.#ctx.lineWidth = this.#strokeWeight * this.#currentScale;
+          this.#ctx.arc(this.#strokeSize * this.#currentScale * 0.5, this.#strokeSize * this.#currentScale * 0.5, this.#strokeSize * this.#currentScale * Math.SQRT1_2, Math.PI * 1.25, Math.PI * 1.75);
+          this.#ctx.arc(this.#strokeSize * this.#currentScale * 0.5, -this.#strokeSize * this.#currentScale * 0.5, this.#strokeSize * this.#currentScale * Math.SQRT1_2, Math.PI * 0.25, Math.PI * 0.75);
+          this.#ctx.stroke();
+
+          break;
+
         case 'M':
           this.#ctx.translate(this.#strokeSize * this.#currentScale, 0);
           break;
