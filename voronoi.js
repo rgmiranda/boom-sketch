@@ -1,38 +1,152 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
+const { Vector, Triangle, doIntersect } = require('./calc');
+const risoColors = require('riso-colors');
 const cvWidth = cvHeight = 1080;
 const settings = {
   dimensions: [ cvWidth, cvHeight ]
 };
 
-const numPoints = 3;
-const points = Array(numPoints).fill(0).map(() => ({
-  x: random.rangeFloor(0, cvWidth),
-  y: random.rangeFloor(0, cvHeight),
-}));
+const numPoints = 4;
 
-const sketch = () => {
+const colors = [
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+  random.pick(risoColors).hex,
+];
+
+/**
+ * 
+ * @param { Vector[] } points 
+ * @param { Triangle[] } triangulation 
+ * @param { CanvasRenderingContext2D } context
+ * @returns { Triangle[] }
+ */
+const processPoints = (points, triangulation, context) => {
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+
+    /**
+     * @type { Triangle[] }
+     */
+    const badTriangles = triangulation.filter(t => t.inCircle(point));
+
+    /**
+     * @type { Vector[] }
+     */
+    const polygon = [];
+
+    for (let j = 0; j < badTriangles.length; j++) {
+      const triangle = badTriangles[j];
+      const edges = { a: true, b: true, c: true };
+      for (let k = 0; k < badTriangles.length; k++) {
+        if (k === j) {
+          continue;
+        }
+        const triangle2 = badTriangles[k];
+        edges.a = edges.a && !triangle2.hasEdge(triangle.a, triangle.b);
+        edges.b = edges.b && !triangle2.hasEdge(triangle.b, triangle.c);
+        edges.c = edges.c && !triangle2.hasEdge(triangle.c, triangle.a);
+      }
+      if (edges.a) {
+        polygon.push(triangle.a, triangle.b);
+      }
+      if (edges.b) {
+        polygon.push(triangle.b, triangle.c);
+      }
+      if (edges.c) {
+        polygon.push(triangle.c, triangle.a);
+      }
+    }
+
+    triangulation = triangulation.filter(t => !t.inCircle(point));
+
+    for (let j = 0; j < polygon.length; j += 2) {
+      triangulation.push(new Triangle(polygon[j], polygon[j + 1], point));
+    }
+
+  } // Next point
+
+  return triangulation;
+}
+
+/**
+ * 
+ * @param { CanvasRenderingContext2D } ctx 
+ * @param { Vector[] } points 
+ */
+const drawPoints = (ctx, points) => {
+  ctx.strokeStyle = '#000000';
+  ctx.fillStyle = 'red';
+  ctx.lineWidth = 1;
+  points.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#999999';
+  });
+};
+
+/**
+ * 
+ * @param { CanvasRenderingContext2D } ctx 
+ * @param { Triangle[] } triangles 
+ */
+const drawTriangles = (ctx, triangles) => {
+  triangles.forEach(({radius, center, a, b, c }) => {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#036';
+    ctx.fillStyle = '#9AF';
+    
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(c.x, c.y);
+    ctx.closePath();
+    ctx.stroke();
+  });
+};
+
+const sketch = ({ width, height }) => {
+
+  const A = new Vector(0, 0);
+  const B = new Vector(width, 0);
+  const C = new Vector(width, height);
+  const D = new Vector(0, height);
+
+  /**
+   * @type { Vector[] }
+   */
+  const points = Array(numPoints).fill(0).map(() => new Vector(random.range(0, width), random.range(0, height)));
+
+  /**
+   * @type { Triangle[] }
+   */
+  let triangulation = [
+    new Triangle(A, C, D),
+    new Triangle(A, B, C),
+  ];
+  
   return ({ context, width, height }) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
-
-    points.forEach((p, i) => {
-      if ( i < numPoints - 1) {
-        context.beginPath();
-        for (let j = i + 1; j < numPoints; j++) {
-          const pd = points[j];
-          const x = (p.x + pd.x) * 0.5;
-          const y = (p.y + pd.y) * 0.5;
-  
-        }
-      }
-      context.fillStyle = '#999999';
-      context.strokeStyle = '#000000';
-      context.beginPath();
-      context.arc(p.x, p.y, 5, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
-    });
+    
+    triangulation = processPoints(points, triangulation, context);
+    triangulation = triangulation.filter(t => !(t.hasVertex(A) || t.hasVertex(B) || t.hasVertex(C) || t.hasVertex(D)));
+    drawTriangles(context, triangulation);
+    //drawPoints(context, points);
   };
 };
 

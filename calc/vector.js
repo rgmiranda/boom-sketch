@@ -118,6 +118,15 @@ export class Vector {
   /**
    * 
    * @param { Vector } vector 
+   * @returns { boolean }
+   */
+  equals(vector) {
+    return vector.x === this.#x && vector.y === this.y;
+  }
+
+  /**
+   * 
+   * @param { Vector } vector 
    * @returns { number }
    */
   angleTo(vector) {
