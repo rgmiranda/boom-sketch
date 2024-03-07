@@ -14,7 +14,7 @@ export class Rule {
      * @param { string } rule
      */
     constructor(rule) {
-      const matches = rule.replaceAll(' ', '').match(/^([FGMLDU\[\]\-+])(-|=)>([FGMLDU\[\]\-+]+)$/);
+      const matches = rule.replaceAll(' ', '').match(/^([ABFGMLDU\[\]\-+])(-|=)>([ABFGMLDU\[\]\-+]+)$/);
       if (!matches) {
         throw new Error('Unrecognized rule pattern');
       }
