@@ -1,56 +1,88 @@
 const canvasSketch = require('canvas-sketch');
-const math = require('canvas-sketch-util/math');
+const risoColors = require('riso-colors');
 const createColormap = require('colormap');
+const { random, math } = require('canvas-sketch-util');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
-  name: 'fibo'
+  name: 'fibo-dark'
 };
 
-const scale = 5;
-const numArcs = 10;
+const bg = '#dbd7d2';
 
+const colors = ["#7a4343","#522d2d","#341d1c","#2a1716","#1e1619","#11151c","#19212e","#212d40","#413c4d", "#1c2e30"];
+
+// Pastel
+//const colors = ["#fbf8cc","#fde4cf","#ffcfd2","#f1c0e8","#cfbaf0","#a3c4f3","#90dbf4","#8eecf5","#98f5e1","#b9fbc0"].reverse()
+
+/*
 const colors = createColormap({
-  colormap: 'cool',
-  nshades: numArcs,
-}).reverse();
+  colormap: 'winter',
+  nshades: 20,
+});*/
 
-const radiuses = [1 * scale, 2 * scale];
-const centers = [
-  {x: 0 * scale, y: 0 * scale},
-  {x: -1 * scale, y: 0 * scale},
+const scale = 12;
+const numArcs = colors.length;
+
+class Slice {
+
+  /**
+   * 
+   * @param { number } x 
+   * @param { number } y 
+   * @param { number } radius 
+   * @param { number } angle
+   */
+  constructor(x, y, radius, angle) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.angle = angle;
+  }
+
+  /**
+   * 
+   * @param { CanvasRenderingContext2D } ctx 
+   * @param { string } color 
+   */
+  draw(ctx, color) {
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.arc(this.x, this.y, this.radius, this.angle, this.angle + Math.PI * 0.5);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = bg;
+    ctx.fill();
+    ctx.lineWidth = math.clamp(this.radius * 0.05, 2, 4);
+    ctx.stroke();
+  }
+}
+
+
+const slices = [
+  new Slice(0, 0, scale * 1, 0),
+  new Slice(0, 0, scale * 1, Math.PI * 0.5),
 ];
-const centerGenerators = [
-  {x: 0, y: 1},
-  {x: -1, y: 0},
-  {x: 0, y: -1},
-  {x: 1, y: 0},
-];
-while (radiuses.length < numArcs) {
-  const pr = radiuses[radiuses.length - 2];
-  const pc = centers[radiuses.length - 1];
-  const ci = (radiuses.length % centerGenerators.length);
-  const nr = radiuses[radiuses.length - 1] + radiuses[radiuses.length - 2];
-  const c = {
-    x: centerGenerators[ci].x * pr + pc.x,
-    y: centerGenerators[ci].y * pr + pc.y,
-  };
-  centers.push(c);
-  radiuses.push(nr);
+
+while (slices.length < numArcs) {
+  const ps = slices[slices.length - 1];
+  const pps = slices[slices.length - 2];
+  const nr = ps.radius + pps.radius;
+  const na = ps.angle + Math.PI * 0.5;
+  const x = ps.x + pps.radius * Math.cos(pps.angle);
+  const y = ps.y + pps.radius * Math.sin(pps.angle);
+  slices.push(new Slice(x, y, nr, na));
 }
 const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = 'black';
+    context.fillStyle = bg;
     context.fillRect(0, 0, width, height);
-    context.translate(width * 0.62, height * 0.44);
+    context.translate(width * 0.28, height * 0.6);
+    context.rotate(Math.PI);
     
-    radiuses.forEach((r, i) => {
-      context.lineWidth = math.mapRange(i, 0, radiuses.length - 1, 5, 10);
-      const c = centers[i];
-      context.strokeStyle = colors[i];
-      context.beginPath();
-      context.arc(c.x, c.y, r, 0, Math.PI * 2);
-      context.stroke();
+    slices.forEach((slice, i) => {
+      const color = colors[i];
+      slice.draw(context, color);
     });
   };
 };
