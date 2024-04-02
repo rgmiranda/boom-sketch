@@ -3,6 +3,7 @@ const { Complex } = require('./calc');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
+  name: 'apollonian',
 };
 
 let sketchManager;
@@ -127,8 +128,8 @@ const sketch = ({ width, height }) => {
   let r1 = width * 0.48;
   let c1 = new Circle(width * 0.5, height * 0.5, -1 / r1);
 
-  let r2 = 0.25 * r1;
-  let r3 = 0.75 * r1;
+  let r2 = 0.62 * r1;
+  let r3 = 0.38 * r1;
 
   let c2 = new Circle(width * 0.5 - r1 + r2, height * 0.5, 1 / r2);
   let c3 = new Circle(width * 0.5 + r1 - r3, height * 0.5, 1 / r3);
@@ -142,8 +143,9 @@ const sketch = ({ width, height }) => {
   addListeners();
 
   return ({ context, width, height }) => {
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
+    context.strokeStyle = 'white';
     allCircles.forEach(c => c.draw(context));
   };
 };
