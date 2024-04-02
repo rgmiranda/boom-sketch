@@ -177,3 +177,23 @@ export function getMediatrix(p, q) {
 
   return getLineFunction(a, b);
 }
+
+/**
+ * 
+ * @param { number } m 
+ * @param { number } b 
+ * @param { Vector } p 
+ * @returns { Vector }
+ */
+export function getNormalPoint(m, b, p) {
+  let nm;
+  if (m === 0) {
+    nm = NaN;
+  } else if (isNaN(m)) {
+    nm = 0;
+  } else {
+    nm = -1/m;
+  }
+  const nb = isNaN(nm) ? p.x : p.y - nm * p.x;
+  return getLineIntersectionPoint(m, b, nm, nb);
+}
