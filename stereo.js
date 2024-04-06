@@ -10,7 +10,7 @@ const settings = {
 const pixelSize = 4;
 const textureWidth = 50;
 let text = 'J';
-const fontStyle = 'serif';
+const fontStyle = 'sans-serif';
 let sketchManager, drawGliph = false;;
 
 /**
@@ -43,6 +43,7 @@ function getGliphImageData(text, fontStyle, width, height) {
   mh = mtext.actualBoundingBoxAscent + mtext.actualBoundingBoxDescent;
   my = (height + mh) * 0.5;
   mx = (width - mw) * 0.5;
+  console.log(mtext, width, height, mh);
   context.fillText(text, mx, my);
   return context.getImageData(0, 0, width, height);
 }
