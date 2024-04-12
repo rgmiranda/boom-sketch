@@ -139,5 +139,28 @@ export class Triangle {
   hasVertex(v) {
     return this.#a.equals(v) || this.#b.equals(v) || this.#c.equals(v);
   }
+  
+  /**
+   * 
+   * @param { Triangle } triangle
+   * @returns { boolean }
+   */
+  isAdjacent(triangle) {
+    let matchingVertex = 0;
+    [
+      [ triangle.a, this.#a ],
+      [ triangle.a, this.#b ],
+      [ triangle.a, this.#c ],
+      [ triangle.b, this.#a ],
+      [ triangle.b, this.#b ],
+      [ triangle.b, this.#c ],
+      [ triangle.c, this.#a ],
+      [ triangle.c, this.#b ],
+      [ triangle.c, this.#c ],
+    ].forEach( ([v1, v2]) => {
+      matchingVertex += (v1.x === v2.x && v1.y === v2.y) ? 1 : 0}
+    );
+    return matchingVertex === 2;
+  }
 
 }

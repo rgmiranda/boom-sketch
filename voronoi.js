@@ -7,7 +7,7 @@ const settings = {
   dimensions: [ cvWidth, cvHeight ]
 };
 
-const numPoints = 4;
+const numPoints = 64;
 
 const colors = [
   random.pick(risoColors).hex,
@@ -107,7 +107,7 @@ const drawPoints = (ctx, points) => {
 const drawTriangles = (ctx, triangles) => {
   triangles.forEach(({radius, center, a, b, c }) => {
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#036';
+    ctx.strokeStyle = '#630';
     ctx.fillStyle = '#9AF';
     
     ctx.beginPath();
@@ -116,6 +116,54 @@ const drawTriangles = (ctx, triangles) => {
     ctx.lineTo(c.x, c.y);
     ctx.closePath();
     ctx.stroke();
+    
+    ctx.strokeStyle = '#BBB';
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.stroke();
+  });
+};
+
+/**
+ * 
+ * @param { Triangle[] } triangles 
+ * @returns { Vector[][] }
+ */
+const processTriangulation = (triangles) => {
+  triangles.forEach((triangle, i) => {
+    for (let j = i + 1; j < triangles.length; j++) {
+      if (!triangle.isAdjacent(triangles[j])) {
+        continue;
+      }
+      ctx.beginPath();
+      ctx.moveTo(triangle.center.x, triangle.center.y);
+      ctx.lineTo(triangles[j].center.x, triangles[j].center.y);
+      ctx.stroke();
+    }
+  });
+};
+
+/**
+ * 
+ * @param { CanvasRenderingContext2D } ctx 
+ * @param { Triangle[] } triangles 
+ */
+const drawVoronoi = (ctx, triangles) => {
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#036';
+  ctx.fillStyle = '#9AF';
+  triangles.forEach((triangle, i) => {
+    for (let j = i + 1; j < triangles.length; j++) {
+      if (!triangle.isAdjacent(triangles[j])) {
+        continue;
+      }
+      ctx.beginPath();
+      ctx.moveTo(triangle.center.x, triangle.center.y);
+      ctx.lineTo(triangles[j].center.x, triangles[j].center.y);
+      ctx.stroke();
+    }
   });
 };
 
@@ -144,9 +192,10 @@ const sketch = ({ width, height }) => {
     context.fillRect(0, 0, width, height);
     
     triangulation = processPoints(points, triangulation, context);
-    triangulation = triangulation.filter(t => !(t.hasVertex(A) || t.hasVertex(B) || t.hasVertex(C) || t.hasVertex(D)));
-    drawTriangles(context, triangulation);
-    //drawPoints(context, points);
+    //triangulation = triangulation.filter(t => !(t.hasVertex(A) || t.hasVertex(B) || t.hasVertex(C) || t.hasVertex(D)));
+    drawVoronoi(context, triangulation);
+    //drawTriangles(context, triangulation);
+    drawPoints(context, points);
   };
 };
 
