@@ -44,3 +44,59 @@ export function getImageBrightness(image) {
   }
   return imageBrightness;
 }
+
+/**
+ * 
+ * @param { ImageData } imageData 
+ * @returns { Uint8ClampedArray }
+ */
+export function getDataBrightness(imageData) {
+  let r, g, b;
+
+  const lumenWeights = [ 0.2126, 0.7152, 0.0722 ];
+  const imageBrightness = [];
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    r = imageData.data[i + 0] * lumenWeights[0];
+    g = imageData.data[i + 1] * lumenWeights[1];
+    b = imageData.data[i + 2] * lumenWeights[2];
+    imageBrightness.push(r + g + b);
+  }
+  return imageBrightness;
+}
+
+/**
+ * @param { string } char
+ * @param { string } fontStyle
+ * @param { number } width 
+ * @param { number } height 
+ * @returns { ImageData }
+ */
+export function getGliphImageData(char, fontStyle, width, height, fg = 'white', bg = 'black') {
+  /** @type { TextMetrics } */
+  let mtext
+
+  const fontSize = width;
+
+  let mx, my, mw, mh;
+
+  /** @type { HTMLCanvasElement } */
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  /** @type { CanvasRenderingContext2D } */
+  const context = canvas.getContext('2d');
+  context.fillStyle = bg;
+  context.fillRect(0, 0, width, height);
+
+  context.font = `bold ${fontSize}px ${fontStyle}`;
+  context.fillStyle = fg;
+
+  mtext = context.measureText(char);
+  mw = mtext.width;
+  mh = mtext.actualBoundingBoxAscent + mtext.actualBoundingBoxDescent;
+  my = (height + mh) * 0.5;
+  mx = (width - mw) * 0.5;
+  context.fillText(char, mx, my);
+  return context.getImageData(0, 0, width, height);
+}
