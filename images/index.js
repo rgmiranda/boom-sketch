@@ -17,24 +17,29 @@ export function loadImage(imageUrl) {
 /**
  * 
  * @param { HTMLImageElement } image 
+ * @param { number } width 
+ * @param { number } height 
  * @returns { Uint8ClampedArray }
  */
-export function getImageBrightness(image) {
+export function getImageBrightness(image, width = undefined, height = undefined) {
   let r, g, b;
+
+  width = width ?? image.width;
+  height = height ?? image.height;
 
   /** @type { HTMLCanvasElement } */
   const cv = document.createElement('canvas');
-  cv.width = image.width;
-  cv.height = image.height;
-
+  cv.width = width;
+  cv.height = height;
+  
   /** @type { CanvasRenderingContext2D } */
   const ctx = cv.getContext('2d');
-
+  
   const lumenWeights = [ 0.2126, 0.7152, 0.0722 ];
-
-  ctx.drawImage(image, 0, 0);
-
-  const imageData = ctx.getImageData(0, 0, image.width, image.height);
+  
+  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
+  
+  const imageData = ctx.getImageData(0, 0, width, height);
   const imageBrightness = [];
   for (let i = 0; i < imageData.data.length; i += 4) {
     r = imageData.data[i + 0] * lumenWeights[0];
