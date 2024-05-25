@@ -10,6 +10,8 @@ const settings = {
 
 const acc = -0.5;
 const drag = 0.98;
+const numSources = 3;
+let emit = false;
 
 const mousePos = {
   x: 0,
@@ -34,13 +36,13 @@ const addEventListeners = (canvas) => {
   const width = canvas.width;
   const height = canvas.height;
 
-  canvas.addEventListener('mousemove', (ev) => {
+  canvas.addEventListener('click', (ev) => {
     const clientRect = canvas.getBoundingClientRect();
     const x = (ev.clientX - canvas.offsetLeft) * (width / clientRect.width);
     const y = (ev.clientY - canvas.offsetTop) * (height / clientRect.height);
     mousePos.x = x;
     mousePos.y = y;
-    fireballs.push(new Fireball(x, y));
+    emit = !emit;
   });
 };
 
@@ -53,7 +55,7 @@ class Fireball {
    */
   constructor(x, y) {
     this.age = 0;
-    this.timespan = random.range(1, 2.5);
+    this.timespan = random.range(2, 5);
     this.size = random.range(30, 60);
     this.vy = 0;
     this.vx = random.range(-5, 5);
@@ -95,9 +97,15 @@ class Fireball {
 
 }
 
-const sketch = ({ canvas }) => {
+const sketch = ({ canvas, width, height }) => {
   addEventListeners(canvas);
-  return ({ context, width, height, deltaTime }) => {
+  const fireSources = Array(numSources).fill(0).map((_, i) => ({
+    x: Math.random() * width,
+    y: (Math.random() + 1) * height * 0.5,
+  }));
+  let pf = 0;
+
+  return ({ context, deltaTime, frame }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
@@ -108,6 +116,12 @@ const sketch = ({ canvas }) => {
       f.draw(context);
     });
     fireballs = fireballs.filter(f => f.active);
+    if (pf !== frame && emit) {
+      fireSources.forEach(source => {
+        fireballs.push(new Fireball(source.x, source.y));
+      });
+      pf = frame;
+    }
   };
 };
 
