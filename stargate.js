@@ -3,8 +3,11 @@ const createColormap = require('colormap');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
-  name: 'stargate'
+  name: 'stargate',
+  animate: true,
+  fps: 24,
 };
+
 const colors = createColormap({
   colormap: 'hsv',
   nshades: 16,
@@ -13,37 +16,32 @@ const colors = createColormap({
 })
 
 const sketch = () => {
-  return ({ context, width, height }) => {
-    /** @type { CanvasGradient } */
-    const gradient = context.createConicGradient(0, 0, 0);
-    colors.forEach((c, i) => {
-      gradient.addColorStop(i / (colors.length - 1), c);
-    });
-
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, width, height);
-
-    context.strokeStyle = gradient;
-    context.lineWidth = 20;
-    context.translate(width * 0.5, height * 0.5);
-
-    context.beginPath();
-    context.arc(0, 0, 400, 0, Math.PI * 2);
+  const lineRatio = 1.05;
+  let lines = [2];
+  const lineTimespan = 5;
+  let elapsedTime = 0;
+  let pf = -1;
+  return ({ context, width, height, deltaTime, frame }) => {
     
-    context.save();
-    context.filter = 'blur(50px)'
-    context.stroke();
-    context.stroke();
-    context.stroke();
-    context.stroke();
-    context.stroke();
-    context.stroke();
-    context.stroke();
-    context.restore();
+    elapsedTime += pf !== frame ? 1 : 0;
+    if (elapsedTime > lineTimespan) {
+      lines.push(2);
+      elapsedTime = 0;
+    }
     
-    context.globalCompositeOperation = 'screen';
-    context.stroke();
-
+    if (pf !== frame) {
+      context.fillStyle = 'black';
+      context.strokeStyle = 'white';
+      context.fillRect(0, 0, width, height);
+      for (let i = 0; i < lines.length; i++) {
+        lines[i] *= lineRatio;
+        context.beginPath();
+        context.arc( width * 0.5, height * 0.5, lines[i], 0, Math.PI * 2);
+        context.stroke();
+      }
+      pf = frame;
+    }
+    lines = lines.filter(v => v < width * Math.SQRT1_2);
   };
 };
 
