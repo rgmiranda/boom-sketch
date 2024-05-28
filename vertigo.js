@@ -145,8 +145,8 @@ const sketch = ({ width, height }) => {
     const size = random.range(50, 150);
     let x, y;
     do {
-      x = random.range(0, width - size);
-      y = random.range(0, height - size);
+      x = random.range(-size, width);
+      y = random.range(-size, height);
     } while (x < cx && cx < (x + size) && y < cy && cy < (y + size));
     return { x, y, size };
   });
