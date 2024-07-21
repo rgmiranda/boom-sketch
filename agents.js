@@ -1,6 +1,6 @@
 const canvasSketch = require('canvas-sketch');
 const { mapRange, clamp } = require('canvas-sketch-util/math');
-const { Vector } = require('./calc');
+const { Vector } = require('@rgsoft/math');
 
 const cvWidth = cvHeight = 1080;
 const numAgents = 32;
