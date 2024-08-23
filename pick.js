@@ -1,3 +1,4 @@
+const { Vector } = require('@rgsoft/math');
 const canvasSketch = require('canvas-sketch');
 const { random } = require('canvas-sketch-util');
 const { Pane } = require('tweakpane');
@@ -52,8 +53,9 @@ class Pointer {
    * @param { number } x 
    * @param { number } y 
    * @param { boolean[][] } points 
+   * @param { Vector[] } directions 
    */
-  constructor(x, y, points) {
+  constructor(x, y, points, directions) {
     if (!Array.isArray(points) || points.length === 0) {
       throw new Error('Empty points array');
     }
@@ -68,13 +70,15 @@ class Pointer {
     this.points = points;
     this.history = [];
     this.points[y][x] = true;
+    this.directions = directions;
   }
 
   /**
    * 
    * @param { boolean[][] } points 
+   * @param { Vector[] } points 
    */
-  static create(points) {
+  static create(points, directions) {
     const available = [];
     points.forEach((row, y) => {
       row.forEach((value, x) => {
@@ -89,7 +93,7 @@ class Pointer {
     }
 
     const { x, y } = random.pick(available);
-    return new Pointer(x, y, points);
+    return new Pointer(x, y, points, directions);
   }
 
   /**
@@ -97,75 +101,47 @@ class Pointer {
    * @returns { boolean }
    */
   move() {
-    const available = [];
-    if (this.x > 0 && !this.points[this.y][this.x - 1]) {
-      if (params.squareMove) {
-        available.push({
-          x: this.x - 1,
-          y: this.y
-        });
+    let available = [];
+    let result = false;
+    
+    this.directions.forEach(dir => {
+      const x = this.x + dir.x;
+      const y = this.y + dir.y;
+      if (y < 0 || y >= this.points.length) {
+        return;
       }
+      if (x < 0 || x >= this.points[0].length) {
+        return;
+      }
+      if (this.points[y][x]) {
+        return;
+      }
+      result = true;
+      available.push({ x, y });
+    });
 
-      if (this.y > 0 && !this.points[this.y - 1][this.x - 1] && params.diagonalMove) {
-        available.push({
-          x: this.x - 1,
-          y: this.y - 1
-        });
-      }
-
-      if (this.y < this.points.length - 1 && !this.points[this.y + 1][this.x - 1] && params.diagonalMove) {
-        available.push({
-          x: this.x - 1,
-          y: this.y + 1
-        });
-      }
-
-    }
-    if (this.x < this.points[0].length - 1 && !this.points[this.y][this.x + 1]) {
-      if (params.squareMove) {
-        available.push({
-          x: this.x + 1,
-          y: this.y
-        });
-      }
-
-      if (this.y > 0 && !this.points[this.y - 1][this.x + 1] && params.diagonalMove) {
-        available.push({
-          x: this.x + 1,
-          y: this.y - 1
-        });
-      }
-      if (this.y < this.points.length - 1 && !this.points[this.y + 1][this.x + 1] && params.diagonalMove) {
-        available.push({
-          x: this.x + 1,
-          y: this.y + 1
-        });
-      }
-    }
-    if (this.y > 0 && !this.points[this.y - 1][this.x] && params.squareMove) {
-      available.push({
-        x: this.x,
-        y: this.y - 1
-      });
-    }
-    if (this.y < this.points.length - 1 && !this.points[this.y + 1][this.x] && params.squareMove) {
-      available.push({
-        x: this.x,
-        y: this.y + 1
-      });
-    }
     if (available.length === 0) {
-      return false;
+      this.directions.forEach(dir => {
+        const x = this.x + dir.x;
+        const y = this.y + dir.y;
+        if (y < 0 || y >= this.points.length) {
+          return;
+        }
+        if (x < 0 || x >= this.points[0].length) {
+          return;
+        }
+        available.push({ x, y });
+      });
     }
     const { x, y } = random.pick(available);
     this.points[y][x] = true;
     this.history.unshift({
       x: this.x,
       y: this.y,
-    })
+    });
     this.x = x;
     this.y = y;
-    return true;
+    return result;
   }
 
   /**
@@ -203,15 +179,29 @@ const generatePointers = (cols, rows) => {
   /** @type { boolean[][] } */
   const points = Array(rows).fill(false).map(() => Array(cols).fill(false));
 
+  const directions = [];
+  if (params.squareMove) {
+    directions.push(new Vector(-1, 0));
+    directions.push(new Vector(1, 0));
+    directions.push(new Vector(0, -1));
+    directions.push(new Vector(0, 1));
+  }
+  if (params.diagonalMove) {
+    directions.push(new Vector(-1, -1));
+    directions.push(new Vector(1, -1));
+    directions.push(new Vector(-1, 1));
+    directions.push(new Vector(1, 1));
+  }
+
   pointers = [];
 
   /** @type { Pointer } */
-  let currentPointer = Pointer.create(points);
+  let currentPointer = Pointer.create(points, directions);
 
   do {
     if (!currentPointer.move()) {
       pointers.push(currentPointer);
-      currentPointer = Pointer.create(points);
+      currentPointer = Pointer.create(points, directions);
     }
   } while (currentPointer);
 
