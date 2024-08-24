@@ -3,13 +3,13 @@ const createColormap = require('colormap');
 
 const settings = {
   dimensions: [ 1080, 1080 ],
-  name: 'refracted',
+  name: `refracted-${Date.now()}`,
 };
 
 const colors = createColormap({
-  colormap: 'magma',
+  colormap: 'jet',
   nshades: 16,
-});
+}).reverse();
 
 const numSplits = 28;
 
@@ -57,7 +57,7 @@ const sketch = () => {
     const dx = 0;
     const dh = height / numSplits;
     const dw = width
-    const sh = 3 * height / numSplits;
+    const sh = 4 * height / numSplits;
     const sw = width;
     const sx = 0;
 
@@ -66,7 +66,8 @@ const sketch = () => {
     context.fillRect(0, 0, width, height);
     
     for (let i = 0; i < numSplits; i++) {
-      sy = i * dh - sh * 0.375;
+      sy = (numSplits - i - 1) * dh - sh * 0.375;
+      //sy = i * dh - sh * 0.375;
       dy = i * dh;
       context.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
     }
