@@ -25,7 +25,7 @@
   "homepage": "https://github.com/rgmiranda/boom-sketch#readme",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@rgsoft/math": "^1.0.2",
+    "@rgsoft/math": "^1.0.6",
     "canvas-sketch": "^0.7.6",
     "canvas-sketch-cli": "^1.11.20",
     "canvas-sketch-util": "^1.10.0",
