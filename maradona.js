@@ -7,7 +7,8 @@ const settings = {
   name: 'maradona'
 };
 
-const pixelSize = 10;
+const xSize = 15;
+const ySize = 1;
 
 /**
  * 
@@ -20,13 +21,13 @@ const renderImage = (context, width, height, image) => {
   const imageBrightness = getImageBrightness(image);
   context.fillStyle = 'white';
 
-  for (let y = 0; y < height; y += pixelSize) {
+  for (let y = 0; y < height; y += ySize) {
     const iy = Math.floor(math.mapRange(y, 0, height, 0, image.height));
-    for (let x = 0; x < width; x += pixelSize) {
+    for (let x = 0; x < width; x += xSize) {
       const ix = Math.floor(math.mapRange(x, 0, width, 0, image.width));
       const idx = iy * image.width + ix;
-      const rw = math.mapRange(imageBrightness[idx], 0, 255, 0, pixelSize);
-      context.fillRect(x + (pixelSize - rw) * 0.5, y, rw, pixelSize);
+      const rw = math.mapRange(imageBrightness[idx], 0, 255, 0, xSize);
+      context.fillRect(x + (xSize - rw) * 0.5, y, rw, ySize);
     }
   }
 };
