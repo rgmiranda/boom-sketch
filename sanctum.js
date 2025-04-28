@@ -5,7 +5,7 @@ const settings = {
   name: 'sanctum'
 };
 
-const innerRadius = 150;
+const innerRadius = 50;
 const outerRadius = 500;
 const step = 0.1
 
@@ -26,7 +26,7 @@ while (radius < outerRadius + i) {
     x: Math.cos(-step * i) * radius,
     y: Math.sin(-step * i) * radius,
   });
-  radius *= 1.075;
+  radius *= 1.1;
   i++;
 }
 parts.push({
@@ -57,7 +57,7 @@ const drawMesh = (context, width, height) => {
     let px = innerRadius;
     let py = 0;
     parts.forEach(({ x, y }, k) => {
-      context.lineWidth = (k + 1) * 2;
+      context.lineWidth = (k + 1) * 1.25;
       context.beginPath();
       context.moveTo(px, py);
       context.lineTo(x, y);
@@ -69,7 +69,7 @@ const drawMesh = (context, width, height) => {
     px = innerRadius;
     py = 0;
     oppositeParts.forEach(({ x, y }, k) => {
-      context.lineWidth = (k + 1) * 2;
+      context.lineWidth = (k + 1) * 1.25;
       context.beginPath();
       context.moveTo(px, py);
       context.lineTo(x, y);
