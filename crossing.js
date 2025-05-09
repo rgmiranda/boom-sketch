@@ -22,16 +22,24 @@ const colors = createColormap({
  * @param { CanvasRenderingContext2D } context 
  * @param { number } width 
  * @param { number } horizon 
+ * @param { number } origin 
  */
-const drawHorizontalLines = (context, width, height, horizon) => {
-  const ratio = 2;
+const drawHorizontalLines = (context, width, height, horizon, origin) => {
+  const ratio = 1.25;
   let linePad = 1;
-  context.strokeStyle = 'magenta';
+  context.strokeStyle = 'white';
   
   for (let y = horizon; y < height; y += linePad) {
+
+    const dyo = y - origin.y;
     context.beginPath();
     context.moveTo(0, y);
     context.lineTo(width, y);
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(0, origin.y - dyo);
+    context.lineTo(width, origin.y - dyo);
     context.stroke();
     linePad *= ratio;
   }
@@ -49,7 +57,7 @@ const drawHorizontalLines = (context, width, height, horizon) => {
  */
 const drawVerticalLines = (context, width, height, origin, horizon, linePad, frame) => {
   const bgy = horizon;
-  const speed = 5;
+  const speed = 1;
   for (let bgx = (frame * speed) % linePad; bgx < width; bgx += linePad) {
     const bgOrigin = new Vector(bgx, bgy);
     const line = Line.fromPoints(origin, bgOrigin);
@@ -67,72 +75,39 @@ const drawVerticalLines = (context, width, height, origin, horizon, linePad, fra
         fgy = line.m * fgx + line.a;
       }
     }
+    const dyo = Math.abs(horizon - origin.y);
     context.beginPath();
     context.moveTo(bgx, bgy);
     context.lineTo(fgx, fgy);
-    context.strokeStyle = 'magenta';
+    context.strokeStyle = 'white';
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(bgx, origin.y - dyo);
+    context.lineTo(fgx, height - fgy);
+    context.strokeStyle = 'white';
     context.stroke();
   }
 };
 
-/**
- * 
- * @param { CanvasRenderingContext2D } context 
- * @param { number } width  
- * @param { number } horizon 
- */
-const drawSky = (context, width, horizon) => {
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, horizon);
-}
-
-/**
- * 
- * @param { CanvasRenderingContext2D } context 
- * @param { number } width 
- * @param { number } height 
- * @param { number } mid 
- * @param { number } frame  
- */
-const drawHorizon = (context, width, height, mid, frame) => {
-  const step = 1;
-  const freq = 0.0025;
-  const amp = 100;
-  
-  let y;
-  context.beginPath();
-  context.moveTo(0, height);
-  for (let x = 0; x < width + step; x += step) {
-    y = mid
-     + random.noise1D(x - frame, freq, amp)
-     + random.noise1D(x - frame, freq * 12.5, amp * 0.05)
-     ;
-    context.lineTo(x, y);
-  }
-  context.lineTo(width, height);
-  context.closePath();
-  context.fillStyle = 'black';
-  context.fill();
-};
 
 const sketch = ({ width, height, context }) => {
-  const origin = new Vector(width * 0.5, height * 0.45);
-  const horizon = height * 0.475;
-  const linePad = 50;
+  const origin = new Vector(width * 0.5, height * 0.5);
+  const horizon = height * 0.525;
+  const linePad = 25;
 
   gradient = context.createLinearGradient(width * 0.5, 0, width * 0.5, horizon);
   colors.forEach((c, i, a) => {
     gradient.addColorStop(i / (a.length - 1), c)
   });
-  return ({ context, frame }) => {
+  frame = 0;
+  return ({ context }) => {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
-    drawSky(context, width, horizon);
-    drawHorizon(context, width, height, height * 0.35, frame);
-    drawHorizontalLines(context, width, height, horizon);
+    drawHorizontalLines(context, width, height, horizon, origin);
     drawVerticalLines(context, width, height, origin, horizon, linePad, frame);
-    
+    frame++;
   };
 };
 
