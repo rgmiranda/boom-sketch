@@ -1,60 +1,55 @@
 const canvasSketch = require('canvas-sketch');
 
-const cvWidth = cvHeight = 1080;
-const lineWidth = 20;
-const circles = 8;
-const maxRadius = cvHeight * 0.28
-const radiusStep = maxRadius / circles;
-
 const settings = {
-  dimensions: [cvWidth, cvHeight]
+  dimensions: [ 1080, 1080 ],
+  name: 'infinity'
 };
 
-const sketch = ({ width, height }) => {
-  const c1 = {
-    x: width * 0.5,
-    y: (height  - maxRadius - radiusStep) * 0.5
-  };
-  const c2 = {
-    x: width * 0.5,
-    y: (height + maxRadius + radiusStep) * 0.5
+/**
+ * 
+ * @param { CanvasRenderingContext2D } context 
+ * @param { number } width 
+ * @param { number } height 
+ */
+const drawSymbol = (context, width, height) => {
+  const splits = 64;
+  const angle = 2 * Math.PI / splits;
+  const r0 = width * 0.34;
+  const r1 = width * 0.14;
+  const cx0 = width * 0.7 - r0;
+  const cx1 = width * 0.7 + r1;
+  const cy = height * 0.5;
+  context.lineWidth = 2;
+
+  let a0 = - Math.PI * 0.25;
+  let a1 = Math.PI * 0.25;
+
+  context.beginPath();
+  for (let i = 0; i < splits; i++) {
+    const x0 = r0 * Math.cos(a0); 
+    const y0 = r0 * Math.sin(a0); 
+    const x1 = r1 * Math.cos(a1); 
+    const y1 = r1 * Math.sin(a1);
+
+    if (i === 0) {
+      context.moveTo(cx0 + x0, cy + y0);
+    } else {
+      context.lineTo(cx0 + x0, cy + y0);
+    }
+    context.lineTo(cx1 + x1, cy + y1);
+    a0 += angle;
+    a1 -= angle;
   }
+  context.closePath();
+  context.stroke();
+};
+
+const sketch = () => {
   return ({ context, width, height }) => {
-    context.fillStyle = '#F2EECB';
+    context.fillStyle = 'black';
+    context.strokeStyle = 'white';
     context.fillRect(0, 0, width, height);
-
-    context.strokeStyle = '#1E293B';
-    context.lineWidth = lineWidth;
-
-    for (let i = 0; i < circles; i++) {
-      context.beginPath();
-      context.arc(c1.x, c1.y, maxRadius - i * radiusStep, 0, Math.PI * 2);
-      context.stroke();
-
-      context.beginPath();
-      context.arc(c2.x, c2.y, maxRadius - i * radiusStep, 0, Math.PI * 2);
-      context.stroke();
-    }
-
-    for (let i = 0; i < circles; i++) {
-      context.beginPath();
-      context.moveTo(c1.x, c1.y);
-      context.arc(c1.x, c1.y, maxRadius - i * radiusStep, Math.PI, Math.PI * 0.5);
-      context.fill();
-
-      context.beginPath();
-      context.arc(c1.x, c1.y, maxRadius - i * radiusStep, Math.PI, Math.PI * 0.5);
-      context.stroke();
-      
-      context.beginPath();
-      context.moveTo(c2.x, c2.y);
-      context.arc(c2.x, c2.y, maxRadius - i * radiusStep, 0, Math.PI * 1.5);
-      context.fill();
-  
-      context.beginPath();
-      context.arc(c2.x, c2.y, maxRadius - i * radiusStep, 0, Math.PI * 1.5);
-      context.stroke();
-    }
+    drawSymbol(context, width, height);
   };
 };
 
