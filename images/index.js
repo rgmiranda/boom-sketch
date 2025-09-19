@@ -14,6 +14,32 @@ export function loadImage(imageUrl) {
   });
 }
 
+
+/**
+ * 
+ * @param { HTMLImageElement } image 
+ * @param { number } width 
+ * @param { number } height 
+ * @returns { ImageData }
+ */
+export function getImageData(image, width = undefined, height = undefined) {
+  width = width ?? image.width;
+  height = height ?? image.height;
+
+  /** @type { HTMLCanvasElement } */
+  const cv = document.createElement('canvas');
+  cv.width = width;
+  cv.height = height;
+  
+  /** @type { CanvasRenderingContext2D } */
+  const ctx = cv.getContext('2d');
+  
+  ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
+  
+  const imageData = ctx.getImageData(0, 0, width, height);
+  return imageData;
+}
+
 /**
  * 
  * @param { HTMLImageElement } image 
