@@ -7,7 +7,7 @@ const settings = {
 };
 
 const imageFile = 'yuri.png';
-const pixelSize = 5;
+const pixelSize = 6;
 
 /**
  * 
@@ -77,16 +77,16 @@ function drawHalftone( ctx, cmykData, width, height, cellSize) {
   const channels = ['k', 'c', 'm', 'y'];
   const angles = { c: 15, m: 75, y: 0, k: 45 };
   const colors = {
-    c: 'cyan',
-    m: 'magenta',
-    y: 'yellow',
-    k: 'black'
+    c: [0, 255, 255],
+    m: [255, 0, 255],
+    y: [255, 255, 0],
+    k: [0, 0, 0]
   };
 
   for (const ch of channels) {
     const chIndex = { c: 0, m: 1, y: 2, k: 3 }[ch];
     const angle = angles[ch];
-    const color = colors[ch];
+    const [r, g, b] = colors[ch];
 
     ctx.save();
     const centerX = width / 2;
@@ -94,8 +94,6 @@ function drawHalftone( ctx, cmykData, width, height, cellSize) {
     ctx.translate(centerX, centerY);
     ctx.rotate((angle * Math.PI) / 180);
     const matrix = ctx.getTransform();
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
 
     for (let gy = -centerY * Math.SQRT2; gy < centerY * Math.SQRT2; gy += cellSize) {
       for (let gx = -centerX * Math.SQRT2; gx < centerX * Math.SQRT2; gx += cellSize) {
@@ -116,9 +114,11 @@ function drawHalftone( ctx, cmykData, width, height, cellSize) {
           cellSize
         );
 
-        const radius = cellSize * intensity * 0.5;
+        const color = `rgba(${r}, ${g}, ${b}, ${intensity})`;
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
         ctx.beginPath();
-        ctx.arc(gx + cellSize * 0.5, gy + cellSize * 0.5, radius, 0, Math.PI * 2);
+        ctx.arc(gx + cellSize * 0.5, gy + cellSize * 0.5, cellSize * 0.5, 0, Math.PI * 2);
         ctx.fill();
       }
     }
