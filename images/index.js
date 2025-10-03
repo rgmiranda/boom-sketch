@@ -79,7 +79,7 @@ export function getImageBrightness(image, width = undefined, height = undefined)
 /**
  * 
  * @param { ImageData } imageData 
- * @returns { Uint8ClampedArray }
+ * @returns { number[] }
  */
 export function getDataBrightness(imageData) {
   let r, g, b;

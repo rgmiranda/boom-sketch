@@ -1,5 +1,5 @@
 const canvasSketch = require('canvas-sketch');
-const { loadImage, getImageData, getDataBrightness } = require('./images');
+const { loadImage, getImageData } = require('./images');
 const { random } = require('canvas-sketch-util');
 
 const settings = {
@@ -7,69 +7,178 @@ const settings = {
   name: 'gattaca'
 };
 
-const colors = [
-  '#ff6699',
-  '#66ff99',
-  '#6699ff',
-  '#ffff33',
-];
-
 const imageFile = 'gattaca.png';
-const pixelSize = 15;
-const q1 = pixelSize * 0.3;
-const q2 = pixelSize * 0.5;
-const q3 = pixelSize * 0.7;
+const pixelSize = 10;
 
 /**
  * 
- * @param { CanvasRenderingContext2D } context 
- * @param { number } width 
- * @param { number } height 
- * @param { number[] } imageBrightness 
+ * @param { Uint8ClampedArray } rgba 
  */
-const drawPixels = (context, width, height, imageBrightness) => {
-  const cols = Math.ceil(width / pixelSize);
-  const rows = Math.ceil(height / pixelSize);
+function validateRgba(rgba) {
+  if (!(rgba instanceof Uint8ClampedArray)) {
+    throw new Error("RGBA must be an array");
+  }
 
+  if (rgba.length % 4 !== 0) {
+    throw new Error("Invalid number of elements in array");
+  }
 
-  for (let i = 0; i < cols; i++) {
-    context.strokeStyle = random.pick(colors);
-    const x = i * pixelSize;
-      for (let j = 0; j < rows; j++) {
-      const y = j * pixelSize;
-      const intensity = imageBrightness[j * cols + i] / 255;
-      const lineWidth = pixelSize * 0.05 + intensity * pixelSize * 0.15;
-      context.lineWidth = lineWidth;
-      context.beginPath();
-      context.moveTo(x + q1, y);
-      context.bezierCurveTo(x + q1, y + q2, x + q3, y + q2, x + q3, y + pixelSize);
-      context.stroke();
-      context.beginPath();
-      context.moveTo(x + q3, y);
-      context.bezierCurveTo(x + q3, y + q2, x + q1, y + q2, x + q1, y + pixelSize);
-      context.stroke();
+  for (const c of rgba) {
+    if (c < 0 || c > 255) {
+      throw new Error("Every channel in RGBA must be between 0 and 255");
     }
   }
-};
+}
+
+
+/**
+ * 
+ * @param { Uint8ClampedArray } pixels 
+ * @returns { Uint8ClampedArray }
+ */
+function halftone(pixels) {
+  validateRgba(pixels);
+  const cmykData = new Uint8ClampedArray(pixels.length);
+  for (let i = 0; i < pixels.length; i += 4) {
+    const [r, g, b, a] = pixels.slice(i, i + 4);
+    const nr = r / 255;
+    const ng = g / 255;
+    const nb = b / 255;
+
+    const k = 1 - Math.max(nr, ng, nb);
+
+    if (k === 1) {
+      cmykData[i + 0] = 0;
+      cmykData[i + 1] = 0;
+      cmykData[i + 2] = 0;
+      cmykData[i + 3] = 1;
+    }
+    
+    const c = (1 - nr - k) / (1 - k);
+    const m = (1 - ng - k) / (1 - k);
+    const y = (1 - nb - k) / (1 - k);
+
+    cmykData[i + 0] = c;
+    cmykData[i + 1] = m;
+    cmykData[i + 2] = y;
+    cmykData[i + 3] = k;
+  }
+  return cmykData;
+}
+
+/**
+ * 
+ * @param { CanvasRenderingContext2D } ctx 
+ * @param { Uint8ClampedArray } cmykData 
+ * @param { number } width 
+ * @param { number } height 
+ * @param { number } cellSize 
+ */
+function drawHalftone( ctx, cmykData, width, height, cellSize) {
+  const channels = ['k', 'c', 'm', 'y'];
+  const angles = { c: 15, m: 75, y: 0, k: 45 };
+  const colors = {
+    c: [0, 255, 255],
+    m: [255, 0, 255],
+    y: [255, 255, 0],
+    k: [0, 0, 0]
+  };
+  const chars = ['T', 'G', 'A', 'C'];
+
+  for (const ch of channels) {
+    const chIndex = { c: 0, m: 1, y: 2, k: 3 }[ch];
+    const angle = angles[ch];
+    const [r, g, b] = colors[ch];
+
+    ctx.save();
+    const centerX = width / 2;
+    const centerY = height / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate((angle * Math.PI) / 180);
+    const matrix = ctx.getTransform();
+    ctx.font = `bold ${cellSize}px sans-serif`;
+
+    for (let gy = -centerY * Math.SQRT2; gy < centerY * Math.SQRT2; gy += cellSize) {
+      for (let gx = -centerX * Math.SQRT2; gx < centerX * Math.SQRT2; gx += cellSize) {
+
+        const point = new DOMPoint(gx, gy);
+        const pTransformed = matrix.transformPoint(point);
+        
+        const ox = Math.round(pTransformed.x);
+        const oy = Math.round(pTransformed.y);
+        
+        const intensity = sampleChannelAverage(
+          cmykData,
+          chIndex,
+          ox,
+          oy,
+          width,
+          height,
+          cellSize
+        );
+
+        
+        const char = random.pick(chars);
+        const color = `rgba(${r}, ${g}, ${b}, ${intensity})`;
+        //const s = intensity * cellSize;
+        //const color = `rgba(${r}, ${g}, ${b})`;
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        //ctx.fillRect(gx, gy, s, s);
+        ctx.fillText(char, gx, gy + cellSize);
+        ctx.strokeText(char, gx, gy + cellSize);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
+}
+
+/**
+ * 
+ * @param { Uint8ClampedArray } cmykData 
+ * @param { number } channelIndex 
+ * @param { number } startX 
+ * @param { number } startY 
+ * @param { number } width 
+ * @param { number } height 
+ * @param { number } cellSize 
+ * @returns 
+ */
+function sampleChannelAverage( cmykData, channelIndex, startX, startY, width, height, cellSize) {
+  let total = 0;
+  let count = 0;
+  for (let y = 0; y < cellSize; y++) {
+    for (let x = 0; x < cellSize; x++) {
+      const py = startY + y;
+      const px = startX + x;
+      if (px >= 0 && px < width && py >= 0 && py < height) {
+        const idx = (py * width + px) * 4 + channelIndex;
+        total += cmykData[idx];
+        count++;
+      }
+    }
+  }
+  return count > 0 ? total / count : 0;
+}
 
 const sketch = async ({ width, height }) => {
   const image = await loadImage(`images/${imageFile}`);
-  const cols = Math.ceil(width / pixelSize);
-  const rows = Math.ceil(height / pixelSize);
-  const imageData = getImageData(image, cols, rows);
-  const imageBrightness = getDataBrightness(imageData);
+  const imageData = getImageData(image, width, height);
+  const cmykData = halftone(imageData.data);
 
   return (
     /**
-     * @param {{ context: CanvasRenderingContext2D }} 
+     * @param {{ context: CanvasRenderingContext2D, width: number, height: number }} 
      */
     ({ context }) => {
     context.clearRect(0, 0, width, height);
-    context.fillStyle = 'black';
-    context.strokeStyle = 'white';
+    context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
-    drawPixels(context, width, height, imageBrightness);
-
+    context.globalCompositeOperation = 'multiply';
+    drawHalftone(context, cmykData, width, height, pixelSize);
   });
 };
 

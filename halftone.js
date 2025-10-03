@@ -6,7 +6,7 @@ const settings = {
   name: 'halftone'
 };
 
-const imageFile = 'nimbus.png';
+const imageFile = 'yuri.png';
 const pixelSize = 5;
 
 /**
@@ -166,13 +166,10 @@ const sketch = async ({ width, height }) => {
      */
     ({ context }) => {
     context.clearRect(0, 0, width, height);
-    context.globalCompositeOperation = 'multiply';
-
-    drawHalftone(context, cmykData, width, height, pixelSize);
-
-    context.globalCompositeOperation = 'destination-over';
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
+    context.globalCompositeOperation = 'multiply';
+    drawHalftone(context, cmykData, width, height, pixelSize);
   });
 };
 
